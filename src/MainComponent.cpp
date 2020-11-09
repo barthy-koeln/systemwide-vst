@@ -34,7 +34,7 @@ MainComponent::MainComponent() {
 
   this->knownPluginList = std::make_unique<juce::KnownPluginList>();
   std::unique_ptr<juce::XmlElement> xmlPluginList(userSettings->getXmlValue("pluginList"));
-  if (nullptr != xmlPluginList) {
+  if (xmlPluginList) {
     this->knownPluginList->recreateFromXml(*xmlPluginList);
   }
   this->knownPluginList->sort(juce::KnownPluginList::sortAlphabetically, true);
@@ -47,25 +47,26 @@ MainComponent::MainComponent() {
       true
   );
 
-  this->pluginListComponent->setTableModel(new PluginSelectionTableModel(
-      *this->pluginListComponent,
-      *this->knownPluginList,
-      *this->appLookAndFeel,
-      *this
-  ));
+  this->pluginListComponent->setTableModel(
+      new PluginSelectionTableModel(
+          *this->pluginListComponent,
+          *this->knownPluginList,
+          *this->appLookAndFeel,
+          *this
+      ));
 
   this->addAndMakeVisible(*this->pluginListComponent);
 
   this->setLookAndFeel(this->appLookAndFeel.get());
   this->setSize(1024, 512);
 
-  std::unique_ptr<juce::XmlElement> savedDeviceManager(userSettings->getXmlValue("deviceManager"));
+  std::unique_ptr<juce::XmlElement> savedDeviceManager = userSettings->getXmlValue("deviceManager");
   MainComponent::doWithPermission(
       juce::RuntimePermissions::recordAudio,
       [&](bool granted) {
         char inputChannels = granted ? 2 : 0;
 
-        if (nullptr != savedDeviceManager) {
+        if (savedDeviceManager) {
           this->deviceManager->initialise(inputChannels, 2, savedDeviceManager.get(), true);
           return;
         }
@@ -75,6 +76,29 @@ MainComponent::MainComponent() {
   );
 
   this->audioProcessorPlayer = std::make_unique<juce::AudioProcessorPlayer>();
+
+  this->deviceManager->addAudioCallback(this->audioProcessorPlayer.get());
+
+  auto currentDevice = this->deviceManager->getCurrentAudioDevice();
+  this->passThrough = std::make_unique<PassthroughProcessor>(
+      currentDevice->getActiveInputChannels().toInteger(),
+      currentDevice->getActiveOutputChannels().toInteger()
+  );
+
+  this->audioProcessorPlayer->setProcessor(this->passThrough.get());
+
+  std::unique_ptr<juce::XmlElement> savedProcessor = userSettings->getXmlValue("processor");
+  if (savedProcessor) {
+    auto plugin = std::make_unique<juce::PluginDescription>();
+    plugin->loadFromXml(*savedProcessor);
+    this->getPluginSelectionModel()->setSelected(*plugin);
+    this->loadPlugin(*plugin, false);
+
+    juce::MemoryBlock state;
+    state.fromBase64Encoding(userSettings->getValue("processorState"));
+    this->loadedPlugin->setStateInformation(state.getData(), state.getSize());
+    state.reset();
+  }
 
   this->knownPluginList->addChangeListener(this);
   this->deviceManager->addChangeListener(this);
@@ -103,9 +127,9 @@ void MainComponent::changeListenerCallback(juce::ChangeBroadcaster *source) {
       }
     }
 
-    std::unique_ptr<juce::XmlElement> savedPluginList(this->knownPluginList->createXml());
-    if (nullptr != savedPluginList) {
-      this->applicationProperties->getUserSettings()->setValue("pluginList", savedPluginList.get());
+    std::unique_ptr<juce::XmlElement> pluginListToSave = this->knownPluginList->createXml();
+    if (pluginListToSave) {
+      this->applicationProperties->getUserSettings()->setValue("pluginList", pluginListToSave.get());
       this->applicationProperties->saveIfNeeded();
     }
 
@@ -113,45 +137,23 @@ void MainComponent::changeListenerCallback(juce::ChangeBroadcaster *source) {
   }
 
   if (source == this->deviceManager.get()) {
-    std::unique_ptr<juce::XmlElement> savedDeviceManager(this->deviceManager->createStateXml());
-
-    if (nullptr != savedDeviceManager) {
-      this->applicationProperties->getUserSettings()->setValue("deviceManager", savedDeviceManager.get());
+    std::unique_ptr<juce::XmlElement> deviceManagerToSave = this->deviceManager->createStateXml();
+    if (deviceManagerToSave) {
+      this->applicationProperties->getUserSettings()->setValue("deviceManager", deviceManagerToSave.get());
       this->applicationProperties->saveIfNeeded();
     }
 
     return;
   }
 
-  if (source == dynamic_cast<PluginSelectionTableModel*>(this->pluginListComponent->getTableListBox().getModel())) {
-    auto model = dynamic_cast<PluginSelectionTableModel*>(this->pluginListComponent->getTableListBox().getModel());
-    juce::String error;
-    juce::AudioIODevice *currentDevice = this->deviceManager->getCurrentAudioDevice();
-
-    if(this->loadedPlugin){
-      this->deviceManager->removeAudioCallback(this->audioProcessorPlayer.get());
-      this->audioProcessorPlayer->setProcessor(nullptr);
-      this->loadedPlugin.reset();
-    }
-
-    this->loadedPlugin = this->pluginFormatManager->createPluginInstance(
-        model->selected,
-        currentDevice->getCurrentSampleRate(),
-        currentDevice->getCurrentBufferSizeSamples(),
-        error
-    );
-
-    if (!this->loadedPlugin) {
-      std::cerr << error << std::endl;
+  auto model = this->getPluginSelectionModel();
+  if (source == model) {
+    if (this->loadedPlugin->getPluginDescription().fileOrIdentifier == model->getSelected().fileOrIdentifier) {
+      this->pluginWindow->setVisible(true);
       return;
     }
 
-    this->audioProcessorPlayer->setProcessor(this->loadedPlugin.get());
-    this->deviceManager->addAudioCallback(this->audioProcessorPlayer.get());
-
-    auto window = new PluginWindow(*this->loadedPlugin, *this->appLookAndFeel);
-
-    window->setVisible(true);
+    this->loadPlugin(model->getSelected());
 
     return;
   }
@@ -184,4 +186,47 @@ void MainComponent::doWithPermission(
   }
 
   callback(true);
+}
+
+void MainComponent::loadPlugin(juce::PluginDescription &plugin, bool show) {
+  juce::AudioIODevice *currentDevice = this->deviceManager->getCurrentAudioDevice();
+  juce::String error;
+
+  if (this->loadedPlugin) {
+    this->audioProcessorPlayer->setProcessor(this->passThrough.get());
+    this->pluginWindow.reset();
+    this->loadedPlugin.reset();
+  }
+
+  this->loadedPlugin = this->pluginFormatManager->createPluginInstance(
+      plugin,
+      currentDevice->getCurrentSampleRate(),
+      currentDevice->getCurrentBufferSizeSamples(),
+      error
+  );
+
+  if (!this->loadedPlugin) {
+    std::cerr << error << std::endl;
+    return;
+  }
+
+  std::unique_ptr<juce::XmlElement> processorToSave = plugin.createXml();
+  if (processorToSave) {
+    this->applicationProperties->getUserSettings()->setValue("processor", processorToSave.get());
+    this->applicationProperties->saveIfNeeded();
+  }
+
+  this->audioProcessorPlayer->setProcessor(this->loadedPlugin.get());
+
+  this->pluginWindow = std::make_unique<PluginWindow>(
+      *this->loadedPlugin,
+      *this->appLookAndFeel,
+      *this->applicationProperties
+  );
+
+  this->pluginWindow->setVisible(show);
+}
+
+PluginSelectionTableModel *MainComponent::getPluginSelectionModel() {
+  return dynamic_cast<PluginSelectionTableModel *>(this->pluginListComponent->getTableListBox().getModel());
 }

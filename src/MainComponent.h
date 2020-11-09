@@ -3,8 +3,10 @@
 #include <JuceHeader.h>
 #include "LookAndFeel.h"
 #include "PluginSelectionTableModel.h"
+#include "PassthroughProcessor.h"
+#include "PluginWindow.h"
 
-class MainComponent : public juce::Component, public juce::ChangeListener {
+ class MainComponent : public juce::Component, public juce::ChangeListener {
  public:
   MainComponent();
   ~MainComponent() override;
@@ -31,6 +33,13 @@ class MainComponent : public juce::Component, public juce::ChangeListener {
 
   std::unique_ptr<juce::AudioDeviceSelectorComponent> audioDeviceSelector;
   std::unique_ptr<juce::AudioPluginInstance> loadedPlugin;
+
+  std::unique_ptr<PassthroughProcessor> passThrough;
+  std::unique_ptr<PluginWindow> pluginWindow;
+
+  void loadPlugin(juce::PluginDescription &plugin, bool show = true);
+   PluginSelectionTableModel* getPluginSelectionModel();
+
 
   static void doWithPermission(
       juce::RuntimePermissions::PermissionID permission,

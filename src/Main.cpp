@@ -1,7 +1,7 @@
 #include <JuceHeader.h>
 
 #include <memory>
-#include "MainComponent.h"
+#include "MainWindow.h"
 
 class systemwide_vstApplication : public juce::JUCEApplication {
  public:
@@ -39,34 +39,6 @@ class systemwide_vstApplication : public juce::JUCEApplication {
     // this method is invoked, and the commandLine parameter tells you what
     // the other instance's command-line arguments were.
   }
-
-  class MainWindow : public juce::DocumentWindow {
-   public:
-    explicit MainWindow(const juce::String &name) : DocumentWindow(
-        name,
-        juce::Colour(0xff000000),
-        DocumentWindow::closeButton
-    ) {
-      this->setUsingNativeTitleBar(true);
-      this->setContentOwned(new MainComponent(), true);
-
-#if JUCE_IOS || JUCE_ANDROID
-      setFullScreen (true);
-#else
-      this->setResizable(false, false);
-      this->centreWithSize(this->getWidth(), this->getHeight());
-#endif
-
-      this->setVisible(true);
-    }
-
-    void closeButtonPressed() override {
-      JUCEApplication::getInstance()->systemRequestedQuit();
-    }
-
-   private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
-  };
 
  private:
   std::unique_ptr<MainWindow> mainWindow;

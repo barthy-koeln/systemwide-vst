@@ -8,9 +8,14 @@
 */
 class PluginWindow : public juce::DocumentWindow {
  public:
-  PluginWindow(juce::AudioProcessor &processor, LookAndFeel &lookAndFeel) :
+  PluginWindow(
+      juce::AudioProcessor &processor,
+      LookAndFeel &lookAndFeel,
+      juce::ApplicationProperties &applicationProperties
+  ) :
       DocumentWindow(processor.getName(), lookAndFeel.background, DocumentWindow::closeButton),
-      processor(processor) {
+      processor(processor),
+      applicationProperties(applicationProperties) {
 
     if (auto *ui = PluginWindow::createProcessorEditor(this->processor)) {
       this->setContentOwned(ui, true);
@@ -19,20 +24,26 @@ class PluginWindow : public juce::DocumentWindow {
     this->setUsingNativeTitleBar(true);
     this->setAlwaysOnTop(true);
     this->centreWithSize(this->getWidth(), this->getHeight());
-    this->setVisible(true);
   }
 
   ~PluginWindow() override {
-    clearContentComponent();
+    this->clearContentComponent();
   }
 
   void closeButtonPressed() override {
     this->setVisible(false);
+
+    juce::MemoryBlock state;
+    this->processor.getStateInformation(state);
+    this->applicationProperties.getUserSettings()->setValue("processorState", state.toBase64Encoding());
+    this->applicationProperties.saveIfNeeded();
+    state.reset();
   }
 
+ private:
+  juce::ApplicationProperties &applicationProperties;
   juce::AudioProcessor &processor;
 
- private:
   [[nodiscard]] float getDesktopScaleFactor() const override { return 1.0f; }
 
   static juce::AudioProcessorEditor *createProcessorEditor(juce::AudioProcessor &processor) {

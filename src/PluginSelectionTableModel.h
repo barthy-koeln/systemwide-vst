@@ -79,15 +79,25 @@ class PluginSelectionTableModel : public juce::TableListBoxModel, public juce::C
   }
 
   void paintCell(juce::Graphics &g, int row, int column, int width, int height, bool /*rowIsSelected*/) override {
+    auto desc = this->list.getTypes()[row];
     bool isBlacklisted = row >= this->list.getNumTypes();
+    bool isActive = this->selected && desc.fileOrIdentifier == this->selected->fileOrIdentifier;
     juce::String text = this->getCellText(isBlacklisted, row, column);
 
     if (text.isEmpty()) {
       return;
     }
 
-    const auto defaultTextColour = this->pluginListComponent.findColour(juce::ListBox::textColourId);
-    g.setColour(isBlacklisted ? juce::Colours::red : defaultTextColour);
+    if (isActive) {
+      g.setColour(lookAndFeel.secondary);
+      g.fillRect(0, 0, width, height);
+    }
+
+    g.setColour(
+        isBlacklisted ?
+        lookAndFeel.tertiary :
+        (isActive ? lookAndFeel.background : this->pluginListComponent.findColour(juce::ListBox::textColourId))
+    );
     g.setFont(juce::Font((float) height * 0.7f, nameCol == column ? juce::Font::bold : juce::Font::plain));
     g.drawFittedText(text, 4, 0, width - 6, height, juce::Justification::centredLeft, 1, 0.9f);
   }
@@ -105,7 +115,12 @@ class PluginSelectionTableModel : public juce::TableListBoxModel, public juce::C
     juce::TableListBoxModel::cellDoubleClicked(row, column, e);
 
     if (row >= 0 && row < this->list.getNumTypes()) {
-      this->selected = this->list.getTypes()[row];
+      if (this->selected) {
+        this->selected.reset();
+      }
+
+      this->selected = std::make_unique<juce::PluginDescription>(this->list.getTypes()[row]);
+      this->pluginListComponent.repaint();
       this->sendChangeMessage();
     }
   }
@@ -148,7 +163,17 @@ class PluginSelectionTableModel : public juce::TableListBoxModel, public juce::C
   juce::KnownPluginList &list;
   LookAndFeel &lookAndFeel;
 
-  juce::PluginDescription selected;
+  juce::PluginDescription &getSelected() {
+    return *this->selected;
+  }
+
+  void setSelected(juce::PluginDescription &plugin) {
+    this->selected = std::make_unique<juce::PluginDescription>(plugin);
+    this->pluginListComponent.repaint();
+  }
+
+ private:
+  std::unique_ptr<juce::PluginDescription> selected;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginSelectionTableModel)
 };
