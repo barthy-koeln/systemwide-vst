@@ -1,31 +1,23 @@
-/*
-  ==============================================================================
-
-    TableListBox.h
-    Created: 7 Nov 2020 4:04:36pm
-    Author:  barthy
-
-  ==============================================================================
-*/
-
 #pragma once
 
 #include <JuceHeader.h>
 #include "LookAndFeel.h"
 
-class PluginSelectionTableModel : public juce::TableListBoxModel, public juce::ChangeBroadcaster {
+#define MESSAGE_SELECTION_CHANGED "selection_changed"
+
+class PluginSelectionTableModel : public juce::TableListBoxModel, public juce::ActionBroadcaster {
  public:
   PluginSelectionTableModel(
       juce::PluginListComponent &pluginListComponent,
       juce::KnownPluginList &list,
       LookAndFeel &lookAndFeel,
-      juce::ChangeListener &listener
+      juce::ActionListener &listener
   ) : pluginListComponent(pluginListComponent), list(list), lookAndFeel(lookAndFeel) {
-    this->addChangeListener(&listener);
+    this->addActionListener(&listener);
   }
 
   ~PluginSelectionTableModel() override {
-    this->removeAllChangeListeners();
+    this->removeAllActionListeners();
   }
 
   int getNumRows() override {
@@ -121,7 +113,7 @@ class PluginSelectionTableModel : public juce::TableListBoxModel, public juce::C
 
       this->selected = std::make_unique<juce::PluginDescription>(this->list.getTypes()[row]);
       this->pluginListComponent.repaint();
-      this->sendChangeMessage();
+      this->sendActionMessage(MESSAGE_SELECTION_CHANGED);
     }
   }
 
@@ -159,20 +151,19 @@ class PluginSelectionTableModel : public juce::TableListBoxModel, public juce::C
     return items.joinIntoString(" ");
   }
 
-  juce::PluginListComponent &pluginListComponent;
-  juce::KnownPluginList &list;
-  LookAndFeel &lookAndFeel;
-
   juce::PluginDescription &getSelected() {
     return *this->selected;
   }
 
-  void setSelected(juce::PluginDescription &plugin) {
+  void setSelected(const juce::PluginDescription &plugin) {
     this->selected = std::make_unique<juce::PluginDescription>(plugin);
     this->pluginListComponent.repaint();
   }
 
  private:
+  LookAndFeel &lookAndFeel;
+  juce::PluginListComponent &pluginListComponent;
+  juce::KnownPluginList &list;
   std::unique_ptr<juce::PluginDescription> selected;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginSelectionTableModel)

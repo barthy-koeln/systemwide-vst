@@ -2,28 +2,31 @@
 
 #include <JuceHeader.h>
 #include "LookAndFeel.h"
+#include "SettingsConstants.h"
+#include "MessagesConstants.h"
 
 /**
     A desktop window containing a plugin's GUI.
 */
-class PluginWindow : public juce::DocumentWindow {
+ class PluginWindow : public juce::DocumentWindow, juce::ActionBroadcaster {
  public:
   PluginWindow(
       juce::AudioProcessor &processor,
-      LookAndFeel &lookAndFeel,
-      juce::ApplicationProperties &applicationProperties
+      juce::PropertiesFile &userSettings,
+      juce::ActionListener *actionListener
   ) :
-      DocumentWindow(processor.getName(), lookAndFeel.background, DocumentWindow::closeButton),
+      DocumentWindow(processor.getName(), juce::Colour(0xff181818), DocumentWindow::closeButton),
       processor(processor),
-      applicationProperties(applicationProperties) {
+      userSettings(userSettings) {
 
     if (auto *ui = PluginWindow::createProcessorEditor(this->processor)) {
       this->setContentOwned(ui, true);
     }
 
     this->setUsingNativeTitleBar(true);
-    this->setAlwaysOnTop(true);
     this->centreWithSize(this->getWidth(), this->getHeight());
+    this->setVisible(true);
+    this->addActionListener(actionListener);
   }
 
   ~PluginWindow() override {
@@ -35,13 +38,15 @@ class PluginWindow : public juce::DocumentWindow {
 
     juce::MemoryBlock state;
     this->processor.getStateInformation(state);
-    this->applicationProperties.getUserSettings()->setValue("processorState", state.toBase64Encoding());
-    this->applicationProperties.saveIfNeeded();
+    this->userSettings.setValue(SETTING_PROCESSOR_STATE, state.toBase64Encoding());
+    this->userSettings.saveIfNeeded();
     state.reset();
+
+    this->sendActionMessage(MESSAGE_CLOSE_PLUGIN);
   }
 
  private:
-  juce::ApplicationProperties &applicationProperties;
+  juce::PropertiesFile &userSettings;
   juce::AudioProcessor &processor;
 
   [[nodiscard]] float getDesktopScaleFactor() const override { return 1.0f; }

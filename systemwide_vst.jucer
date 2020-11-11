@@ -6,12 +6,26 @@
               companyEmail="post@barthy.koeln" bundleIdentifier="koeln.barthy.systemwide_vst"
               cppLanguageStandard="latest" version="0.1.0" headerPath="/home/barthy/Documents/lib/tray">
   <MAINGROUP id="hzzqWZ" name="Systemwide VST">
+    <GROUP id="{FF996127-FD32-1BD1-AB9C-3ADB00F8DF24}" name="assets">
+      <GROUP id="{7E0602A7-2910-121D-AC6B-567B10C32FAB}" name="images">
+        <FILE id="HSLEW9" name="logo.png" compile="0" resource="1" file="assets/images/logo.png"/>
+        <FILE id="cK6D4f" name="logo.svg" compile="0" resource="1" file="assets/images/logo.svg"/>
+        <FILE id="ljpbnW" name="logo_small.png" compile="0" resource="1" file="assets/images/logo_small.png"/>
+      </GROUP>
+    </GROUP>
     <GROUP id="{754518D7-B3F6-4F3D-FBFB-8353298CC519}" name="src">
+      <FILE id="BRdZBN" name="MessagesConstants.h" compile="0" resource="0"
+            file="src/MessagesConstants.h"/>
+      <FILE id="eZO9Cd" name="SettingsConstants.h" compile="0" resource="0"
+            file="src/SettingsConstants.h"/>
+      <FILE id="wMN7V2" name="SystemwideVSTProcess.h" compile="0" resource="0"
+            file="src/SystemwideVSTProcess.h"/>
       <FILE id="ldYVV3" name="PassthroughProcessor.cpp" compile="1" resource="0"
             file="src/PassthroughProcessor.cpp"/>
       <FILE id="aEnynl" name="PassthroughProcessor.h" compile="0" resource="0"
             file="src/PassthroughProcessor.h"/>
-      <FILE id="m7ABB1" name="MainWindow.h" compile="0" resource="0" file="src/MainWindow.h"/>
+      <FILE id="m7ABB1" name="ConfigurationWindow.h" compile="0" resource="0"
+            file="src/ConfigurationWindow.h"/>
       <FILE id="xnTRg6" name="PluginWindow.h" compile="0" resource="0" file="src/PluginWindow.h"/>
       <FILE id="gzWpeX" name="PluginSelectionTableModel.h" compile="0" resource="0"
             file="src/PluginSelectionTableModel.h"/>
@@ -19,10 +33,10 @@
             xcodeResource="1"/>
       <FILE id="j3nLnI" name="Main.cpp" compile="1" resource="0" file="src/Main.cpp"
             xcodeResource="1"/>
-      <FILE id="P5DJJx" name="MainComponent.h" compile="0" resource="0" file="src/MainComponent.h"
-            xcodeResource="1"/>
-      <FILE id="p2f61H" name="MainComponent.cpp" compile="1" resource="0"
-            file="src/MainComponent.cpp" xcodeResource="1"/>
+      <FILE id="P5DJJx" name="ConfigurationComponent.h" compile="0" resource="0"
+            file="src/ConfigurationComponent.h" xcodeResource="1"/>
+      <FILE id="p2f61H" name="ConfigurationComponent.cpp" compile="1" resource="0"
+            file="src/ConfigurationComponent.cpp" xcodeResource="1"/>
     </GROUP>
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_PLUGINHOST_VST="1" JUCE_PLUGINHOST_VST3="1"
@@ -41,7 +55,7 @@
                JUCE_DISABLE_AUDIO_MIXING_WITH_OTHER_APPS="0" JUCE_ASSERTION_FIRFILTER="0"
                JUCE_DSP_USE_INTEL_MKL="0" JUCE_DSP_USE_SHARED_FFTW="0" JUCE_DSP_USE_STATIC_FFTW="0"/>
   <EXPORTFORMATS>
-    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" linuxExtraPkgConfig="gtkmm-3.0 appindicator-0.1">
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="HSLEW9" bigIcon="HSLEW9">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug"/>
         <CONFIGURATION isDebug="0" name="Release"/>
@@ -97,7 +111,7 @@
         <MODULEPATH id="juce_dsp" path="../../JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
-    <CODEBLOCKS_LINUX targetFolder="Builds/CodeBlocksLinux">
+    <CODEBLOCKS_LINUX targetFolder="Builds/CodeBlocksLinux" smallIcon="HSLEW9" bigIcon="HSLEW9">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug"/>
         <CONFIGURATION isDebug="0" name="Release"/>
