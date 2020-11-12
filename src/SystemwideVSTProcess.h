@@ -80,7 +80,7 @@ class SystemwideVSTProcess : public juce::ActionListener {
       this->userSettings->saveIfNeeded();
     }
 
-    return shouldShowConfig || DEBUG;
+    return shouldShowConfig;
   }
 
   void loadPlugin(const juce::PluginDescription &plugin) {

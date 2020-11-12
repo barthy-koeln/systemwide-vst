@@ -23,19 +23,16 @@ class systemwide_vstApplication : public juce::JUCEApplication, public juce::Act
 
   void initialise(const juce::String &commandLine) override {
     this->systemwideVSTProcess = std::make_unique<SystemwideVSTProcess>();
+    this->systemwideVSTProcess->loadSavedPlugin();
 
     if (this->systemwideVSTProcess->shouldShowConfig()) {
       this->createOrShowConfigWindow();
     }
 
-    this->systemwideVSTProcess->loadSavedPlugin();
-
-    /*
     this->trayIconThread = std::make_unique<TrayIconThread>();
     this->trayIconThread->startThread(juce::Thread::realtimeAudioPriority);
     this->trayIconThread->addActionListener(this->systemwideVSTProcess.get());
     this->trayIconThread->addActionListener(this);
-     */
   }
 
   void shutdown() override {

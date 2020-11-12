@@ -60,12 +60,8 @@ class TrayIconThread : public juce::Thread, public juce::ActionBroadcaster {
     };
 
     tray_init(&tray);
-    while (!this->threadShouldExit() && tray_loop(1) == 0) {
-      std::cout << this->threadShouldExit() << std::endl;
-    }
-    std::cout << "before exit" << std::endl;
+    while (tray_loop(0) == 0 && !this->threadShouldExit()) {}
     tray_exit();
-    std::cout << "after exit" << std::endl;
   }
 };
 

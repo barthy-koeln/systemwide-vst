@@ -16,6 +16,7 @@ class ConfigurationWindow : public juce::DocumentWindow, public juce::ActionBroa
     this->addActionListener(listener);
     this->setResizable(false, false);
     this->setContentOwned(new ConfigurationComponent(systemwideVSTProcess), true);
+    this->setVisible(true);
   }
 
   ~ConfigurationWindow() override {
