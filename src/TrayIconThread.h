@@ -7,10 +7,14 @@
 #include <gtk/gtkx.h>
 #include <JuceHeader.h>
 
-class TrayIconThread : public juce::Thread {
+class TrayIconThread : public juce::Thread, public juce::ActionBroadcaster {
 
  public:
   TrayIconThread() : Thread("TrayIconThread") {}
+
+  ~TrayIconThread() override {
+    this->removeAllActionListeners();
+  }
 
   void run() override {
     struct tray_menu tray_menu[] = {
@@ -20,16 +24,20 @@ class TrayIconThread : public juce::Thread {
             .checked = 0,
             .checkbox = 0,
             .cb = [](struct tray_menu *item) {
-              auto thread = (TrayIconThread*) item->context;
+              auto thread = (TrayIconThread *) item->context;
+              thread->sendActionMessage(MESSAGE_SHOW_PLUGIN);
             },
             .context = this
         },
         {
-            .text = "-",
+            .text = "Preferences",
             .disabled = 0,
             .checked = 0,
             .checkbox = 0,
-            .cb = nullptr,
+            .cb = [](struct tray_menu *item) {
+              auto thread = (TrayIconThread *) item->context;
+              thread->sendActionMessage(MESSAGE_SHOW_CONFIG);
+            },
             .context = this
         },
         {
@@ -38,7 +46,8 @@ class TrayIconThread : public juce::Thread {
             .checked = 0,
             .checkbox = 0,
             .cb = [](struct tray_menu *item) {
-              auto thread = (TrayIconThread*) item->context;
+              auto thread = (TrayIconThread *) item->context;
+              thread->sendActionMessage(MESSAGE_QUIT);
             },
             .context = this
         },
@@ -46,13 +55,17 @@ class TrayIconThread : public juce::Thread {
     };
 
     struct tray tray = {
-        .icon = "/home/barthy/Documents/systemwide_vst/assets/images/logo_small.png",
+        .icon = "/home/barthy/Documents/systemwide_vst/assets/images/logo.svg",
         .menu = tray_menu
     };
 
     tray_init(&tray);
-    while (!threadShouldExit() && tray_loop(1) == 0) {}
+    while (!this->threadShouldExit() && tray_loop(1) == 0) {
+      std::cout << this->threadShouldExit() << std::endl;
+    }
+    std::cout << "before exit" << std::endl;
     tray_exit();
+    std::cout << "after exit" << std::endl;
   }
 };
 

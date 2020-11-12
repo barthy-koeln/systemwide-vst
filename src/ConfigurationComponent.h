@@ -7,7 +7,7 @@
 #include "PluginWindow.h"
 #include "SystemwideVSTProcess.h"
 
- class ConfigurationComponent : public juce::Component, public juce::ChangeListener, public juce::ActionListener, juce::ActionBroadcaster {
+ class ConfigurationComponent : public juce::Component, public juce::ChangeListener, public juce::ActionListener, public juce::ActionBroadcaster {
  public:
   explicit ConfigurationComponent(SystemwideVSTProcess &systemwideVSTProcess);
   ~ConfigurationComponent() override;

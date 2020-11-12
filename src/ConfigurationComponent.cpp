@@ -2,11 +2,12 @@
 #include "PluginSelectionTableModel.h"
 #include "SettingsConstants.h"
 
-ConfigurationComponent::ConfigurationComponent(SystemwideVSTProcess &systemwideVSTProcess) : systemwideVSTProcess(
-    systemwideVSTProcess
-) {
+ConfigurationComponent::ConfigurationComponent(SystemwideVSTProcess &systemwideVSTProcess) :
+    systemwideVSTProcess(systemwideVSTProcess) {
   this->appLookAndFeel = std::make_unique<LookAndFeel>();
   this->setLookAndFeel(this->appLookAndFeel.get());
+
+  this->addActionListener(&this->systemwideVSTProcess);
 
   this->audioDeviceSelector = std::make_unique<juce::AudioDeviceSelectorComponent>(
       *this->systemwideVSTProcess.deviceManager,
@@ -19,7 +20,6 @@ ConfigurationComponent::ConfigurationComponent(SystemwideVSTProcess &systemwideV
       false,
       false
   );
-  this->addAndMakeVisible(*this->audioDeviceSelector);
 
   this->knownPluginList = std::make_unique<juce::KnownPluginList>();
   std::unique_ptr<juce::XmlElement>
@@ -46,25 +46,24 @@ ConfigurationComponent::ConfigurationComponent(SystemwideVSTProcess &systemwideV
       )
   );
 
-  this->addAndMakeVisible(*this->pluginListComponent);
   this->knownPluginList->addChangeListener(this);
 
   this->systemwideVSTProcess.deviceManager->addChangeListener(this);
   if (this->systemwideVSTProcess.loadedPlugin) {
     this->getPluginSelectionModel()->setSelected(this->systemwideVSTProcess.loadedPlugin->getPluginDescription());
   }
-  this->setSize(1024, 512);
-  this->setVisible(true);
 
-  this->addActionListener(&this->systemwideVSTProcess);
+  this->addAndMakeVisible(*this->audioDeviceSelector);
+  this->addAndMakeVisible(*this->pluginListComponent);
+  this->setSize(1024, 512);
 }
 
 ConfigurationComponent::~ConfigurationComponent() {
   this->systemwideVSTProcess.deviceManager->removeChangeListener(this);
   this->knownPluginList->removeChangeListener(this);
+  this->removeAllActionListeners();
 
   this->pluginListComponent->setTableModel(nullptr);
-
   this->setLookAndFeel(nullptr);
 }
 
@@ -98,9 +97,6 @@ void ConfigurationComponent::paint(juce::Graphics &g) {
 }
 
 void ConfigurationComponent::resized() {
-  // This is called when the MainContentComponent is resized.
-  // If you add any child components, this is where you should
-  // update their positions.
   if (this->audioDeviceSelector && this->pluginListComponent) {
     auto rect = this->getLocalBounds();
     this->audioDeviceSelector->setBounds(rect.removeFromLeft(512).reduced(this->appLookAndFeel->padding));
@@ -112,6 +108,7 @@ void ConfigurationComponent::resized() {
 PluginSelectionTableModel *ConfigurationComponent::getPluginSelectionModel() {
   return dynamic_cast<PluginSelectionTableModel *>(this->pluginListComponent->getTableListBox().getModel());
 }
+
 void ConfigurationComponent::savePluginList() {
   for (
     const juce::PluginDescription &plugin : this->knownPluginList->getTypes()) {

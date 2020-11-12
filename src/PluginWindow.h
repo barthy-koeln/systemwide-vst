@@ -8,7 +8,7 @@
 /**
     A desktop window containing a plugin's GUI.
 */
- class PluginWindow : public juce::DocumentWindow, juce::ActionBroadcaster {
+class PluginWindow : public juce::DocumentWindow, juce::ActionBroadcaster {
  public:
   PluginWindow(
       juce::AudioProcessor &processor,
@@ -19,14 +19,12 @@
       processor(processor),
       userSettings(userSettings) {
 
+    this->setUsingNativeTitleBar(true);
+    this->addActionListener(actionListener);
+
     if (auto *ui = PluginWindow::createProcessorEditor(this->processor)) {
       this->setContentOwned(ui, true);
     }
-
-    this->setUsingNativeTitleBar(true);
-    this->centreWithSize(this->getWidth(), this->getHeight());
-    this->setVisible(true);
-    this->addActionListener(actionListener);
   }
 
   ~PluginWindow() override {
@@ -34,8 +32,6 @@
   }
 
   void closeButtonPressed() override {
-    this->setVisible(false);
-
     juce::MemoryBlock state;
     this->processor.getStateInformation(state);
     this->userSettings.setValue(SETTING_PROCESSOR_STATE, state.toBase64Encoding());

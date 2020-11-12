@@ -8,13 +8,12 @@
   <MAINGROUP id="hzzqWZ" name="Systemwide VST">
     <GROUP id="{FF996127-FD32-1BD1-AB9C-3ADB00F8DF24}" name="assets">
       <GROUP id="{7E0602A7-2910-121D-AC6B-567B10C32FAB}" name="images">
-        <FILE id="HSLEW9" name="logo.png" compile="0" resource="1" file="assets/images/logo.png"/>
         <FILE id="cK6D4f" name="logo.svg" compile="0" resource="1" file="assets/images/logo.svg"/>
-        <FILE id="ljpbnW" name="logo_small.png" compile="0" resource="1" file="assets/images/logo_small.png"/>
       </GROUP>
     </GROUP>
     <GROUP id="{754518D7-B3F6-4F3D-FBFB-8353298CC519}" name="src">
-      <FILE id="mmGwhP" name="TrayIconThread.h" compile="0" resource="0" file="src/TrayIconThread.h"/>
+      <FILE id="mmGwhP" name="TrayIconThread.h" compile="0" resource="0"
+            file="src/TrayIconThread.h"/>
       <FILE id="BRdZBN" name="MessagesConstants.h" compile="0" resource="0"
             file="src/MessagesConstants.h"/>
       <FILE id="eZO9Cd" name="SettingsConstants.h" compile="0" resource="0"

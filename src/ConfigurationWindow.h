@@ -4,27 +4,26 @@
 #include "ConfigurationComponent.h"
 #include "SystemwideVSTProcess.h"
 
-class ConfigurationWindow : juce::DocumentWindow {
+class ConfigurationWindow : public juce::DocumentWindow, public juce::ActionBroadcaster {
  public:
-  explicit ConfigurationWindow(SystemwideVSTProcess &systemwideVSTProcess) : DocumentWindow(
+  explicit ConfigurationWindow(SystemwideVSTProcess &systemwideVSTProcess, juce::ActionListener *listener)
+      : DocumentWindow(
       juce::String(ProjectInfo::projectName) + " Configuration",
       juce::Colour(0xff181818),
       DocumentWindow::closeButton
   ) {
-    this->setVisible(false);
-    this->setSize(1024, 512);
-    this->setIcon(juce::ImageFileFormat::loadFrom(BinaryData::logo_svg, BinaryData::logo_svgSize));
     this->setUsingNativeTitleBar(true);
+    this->addActionListener(listener);
     this->setResizable(false, false);
-    this->centreWithSize(this->getWidth(), this->getHeight());
-
     this->setContentOwned(new ConfigurationComponent(systemwideVSTProcess), true);
+  }
 
-    this->setVisible(true);
+  ~ConfigurationWindow() override {
+    this->removeAllActionListeners();
   }
 
   void closeButtonPressed() override {
-    delete this;
+    this->sendActionMessage(MESSAGE_CLOSE_CONFIG);
   }
 
  private:

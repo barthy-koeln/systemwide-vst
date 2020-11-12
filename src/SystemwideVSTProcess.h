@@ -56,6 +56,7 @@ class SystemwideVSTProcess : public juce::ActionListener {
 
   void loadSavedPlugin() {
     std::unique_ptr<juce::XmlElement> savedProcessor = this->userSettings->getXmlValue(SETTING_PROCESSOR);
+
     if (savedProcessor) {
       auto plugin = std::make_unique<juce::PluginDescription>();
       plugin->loadFromXml(*savedProcessor);
@@ -65,7 +66,7 @@ class SystemwideVSTProcess : public juce::ActionListener {
       state.fromBase64Encoding(this->userSettings->getValue(SETTING_PROCESSOR_STATE));
       this->loadedPlugin->setStateInformation(state.getData(), state.getSize());
       this->audioProcessorPlayer->setProcessor(this->loadedPlugin.get());
-      state.reset();
+      return;
     }
 
     this->audioProcessorPlayer->setProcessor(this->passThrough.get());
@@ -87,7 +88,7 @@ class SystemwideVSTProcess : public juce::ActionListener {
     juce::String error;
 
     if (nullptr != this->pluginWindow) {
-      this->hideAndDeletePluginWindow();
+      this->deletePluginWindow();
     }
 
     if (this->loadedPlugin) {
@@ -137,12 +138,12 @@ class SystemwideVSTProcess : public juce::ActionListener {
 
   void actionListenerCallback(const juce::String &message) override {
     if (message == MESSAGE_CLOSE_PLUGIN) {
-      this->hideAndDeletePluginWindow();
+      this->deletePluginWindow();
       return;
     }
 
     if (message == MESSAGE_SHOW_PLUGIN) {
-      this->createAndShowPluginWindow();
+      this->createOrShowPluginWindow();
       return;
     }
   }
@@ -151,11 +152,16 @@ class SystemwideVSTProcess : public juce::ActionListener {
   std::unique_ptr<juce::AudioProcessorPlayer> audioProcessorPlayer;
   std::unique_ptr<PluginWindow> pluginWindow;
 
-  void createAndShowPluginWindow() {
+  void createOrShowPluginWindow() {
+    if(this->pluginWindow){
+      this->pluginWindow->setVisible(true);
+      return;
+    }
+
     this->pluginWindow = std::make_unique<PluginWindow>(*this->loadedPlugin, *this->userSettings, this);
   }
 
-  void hideAndDeletePluginWindow() {
+  void deletePluginWindow() {
     this->pluginWindow.reset();
   }
 

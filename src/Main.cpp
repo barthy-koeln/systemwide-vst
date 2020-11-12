@@ -5,7 +5,7 @@
 #include "SystemwideVSTProcess.h"
 #include "TrayIconThread.h"
 
-class systemwide_vstApplication : public juce::JUCEApplication {
+class systemwide_vstApplication : public juce::JUCEApplication, public juce::ActionListener {
  public:
   systemwide_vstApplication() = default;
 
@@ -25,26 +25,58 @@ class systemwide_vstApplication : public juce::JUCEApplication {
     this->systemwideVSTProcess = std::make_unique<SystemwideVSTProcess>();
 
     if (this->systemwideVSTProcess->shouldShowConfig()) {
-      this->configurationWindow = std::make_unique<ConfigurationWindow>(*this->systemwideVSTProcess);
+      this->createOrShowConfigWindow();
     }
 
     this->systemwideVSTProcess->loadSavedPlugin();
 
+    /*
     this->trayIconThread = std::make_unique<TrayIconThread>();
     this->trayIconThread->startThread(juce::Thread::realtimeAudioPriority);
+    this->trayIconThread->addActionListener(this->systemwideVSTProcess.get());
+    this->trayIconThread->addActionListener(this);
+     */
   }
 
   void shutdown() override {
-    this->trayIconThread->stopThread(300);
-    // do nothing
+    this->trayIconThread->stopThread(3000);
   }
 
-  //==============================================================================
   void systemRequestedQuit() override {
-    quit();
+    juce::JUCEApplicationBase::quit();
   }
 
   void anotherInstanceStarted(const juce::String &commandLine) override {}
+
+  void actionListenerCallback(const juce::String &message) override {
+    if (message == MESSAGE_CLOSE_CONFIG) {
+      this->deleteConfigWindow();
+      return;
+    }
+
+    if (message == MESSAGE_SHOW_CONFIG) {
+      this->createOrShowConfigWindow();
+      return;
+    }
+
+    if (message == MESSAGE_QUIT) {
+      juce::JUCEApplicationBase::quit();
+      return;
+    }
+  }
+
+  void createOrShowConfigWindow() {
+    if (this->configurationWindow) {
+      this->configurationWindow->setVisible(true);
+      return;
+    }
+
+    this->configurationWindow = std::make_unique<ConfigurationWindow>(*this->systemwideVSTProcess, this);
+  }
+
+  void deleteConfigWindow() {
+    this->configurationWindow.reset();
+  }
 
  private:
   std::unique_ptr<ConfigurationWindow> configurationWindow;
