@@ -12,12 +12,10 @@ class PluginWindow : public juce::DocumentWindow, juce::ActionBroadcaster {
  public:
   PluginWindow(
       juce::AudioProcessor &processor,
-      juce::PropertiesFile &userSettings,
       juce::ActionListener *actionListener
   ) :
       DocumentWindow(processor.getName(), juce::Colour(0xff181818), DocumentWindow::closeButton),
-      processor(processor),
-      userSettings(userSettings) {
+      processor(processor) {
 
     this->setUsingNativeTitleBar(true);
     this->addActionListener(actionListener);
@@ -32,17 +30,10 @@ class PluginWindow : public juce::DocumentWindow, juce::ActionBroadcaster {
   }
 
   void closeButtonPressed() override {
-    juce::MemoryBlock state;
-    this->processor.getStateInformation(state);
-    this->userSettings.setValue(SETTING_PROCESSOR_STATE, state.toBase64Encoding());
-    this->userSettings.saveIfNeeded();
-    state.reset();
-
     this->sendActionMessage(MESSAGE_CLOSE_PLUGIN);
   }
 
  private:
-  juce::PropertiesFile &userSettings;
   juce::AudioProcessor &processor;
 
   [[nodiscard]] float getDesktopScaleFactor() const override { return 1.0f; }

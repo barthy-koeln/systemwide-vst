@@ -40,6 +40,7 @@ class TrayIconThread : public juce::Thread, public juce::ActionBroadcaster {
             },
             .context = this
         },
+        {"-", 0, 0, 0, nullptr, nullptr},
         {
             .text = "Quit",
             .disabled = 0,
@@ -55,7 +56,7 @@ class TrayIconThread : public juce::Thread, public juce::ActionBroadcaster {
     };
 
     struct tray tray = {
-        .icon = "/home/barthy/Documents/systemwide_vst/assets/images/logo.svg",
+        .icon = "/home/barthy/Documents/systemwide_vst/assets/images/logo.svg", // TODO don't forget this one
         .menu = tray_menu
     };
 

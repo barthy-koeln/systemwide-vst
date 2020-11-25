@@ -6,8 +6,14 @@
 #include "PassthroughProcessor.h"
 #include "PluginWindow.h"
 #include "SystemwideVSTProcess.h"
+#include "DeviceSelectorComponent.h"
 
- class ConfigurationComponent : public juce::Component, public juce::ChangeListener, public juce::ActionListener, public juce::ActionBroadcaster {
+class ConfigurationComponent :
+    public juce::Component,
+    public juce::ChangeListener,
+    public juce::ActionListener,
+    public juce::ActionBroadcaster {
+
  public:
   explicit ConfigurationComponent(SystemwideVSTProcess &systemwideVSTProcess);
   ~ConfigurationComponent() override;
@@ -24,7 +30,7 @@
   std::unique_ptr<LookAndFeel> appLookAndFeel;
   std::unique_ptr<juce::KnownPluginList> knownPluginList;
   std::unique_ptr<juce::PluginListComponent> pluginListComponent;
-  std::unique_ptr<juce::AudioDeviceSelectorComponent> audioDeviceSelector;
+  std::unique_ptr<DeviceSelectorComponent> audioDeviceSelector;
 
   PluginSelectionTableModel *getPluginSelectionModel();
 

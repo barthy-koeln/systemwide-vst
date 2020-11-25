@@ -2,15 +2,20 @@
 #include "PluginSelectionTableModel.h"
 #include "SettingsConstants.h"
 
-ConfigurationComponent::ConfigurationComponent(SystemwideVSTProcess &systemwideVSTProcess) :
-    systemwideVSTProcess(systemwideVSTProcess) {
+ConfigurationComponent::ConfigurationComponent (SystemwideVSTProcess &systemwideVSTProcess) :
+  systemwideVSTProcess(systemwideVSTProcess) {
   this->appLookAndFeel = std::make_unique<LookAndFeel>();
   this->setLookAndFeel(this->appLookAndFeel.get());
 
   this->addActionListener(&this->systemwideVSTProcess);
 
-  this->audioDeviceSelector = std::make_unique<juce::AudioDeviceSelectorComponent>(
-      *this->systemwideVSTProcess.deviceManager,
+  this->audioDeviceSelector = std::make_unique<DeviceSelectorComponent>(
+    this->systemwideVSTProcess.getDeviceManager(),
+    *this->appLookAndFeel
+  );
+
+  /*this->audioDeviceSelector = std::make_unique<juce::AudioDeviceSelectorComponent>(
+      this->systemwideVSTProcess.getDeviceManager(),
       0,
       2,
       0,
@@ -19,38 +24,36 @@ ConfigurationComponent::ConfigurationComponent(SystemwideVSTProcess &systemwideV
       false,
       false,
       false
-  );
+  );*/
 
   this->knownPluginList = std::make_unique<juce::KnownPluginList>();
   std::unique_ptr<juce::XmlElement>
-      xmlPluginList(this->systemwideVSTProcess.userSettings->getXmlValue(SETTING_PLUGIN_LIST));
+    xmlPluginList = this->systemwideVSTProcess.getXmlValue(SETTING_PLUGIN_LIST);
   if (xmlPluginList) {
     this->knownPluginList->recreateFromXml(*xmlPluginList);
   }
   this->knownPluginList->sort(juce::KnownPluginList::sortAlphabetically, true);
 
   this->pluginListComponent = std::make_unique<juce::PluginListComponent>(
-      *this->systemwideVSTProcess.pluginFormatManager,
-      *this->knownPluginList,
-      this->systemwideVSTProcess.userSettings->getFile().getSiblingFile("CrashedPlugins"),
-      this->systemwideVSTProcess.userSettings.get(),
-      true
+    this->systemwideVSTProcess.getPluginFormatManager(),
+    *this->knownPluginList,
+    this->systemwideVSTProcess.getCrashFile(),
+    nullptr
   );
 
   this->pluginListComponent->setTableModel(
-      new PluginSelectionTableModel(
-          *this->pluginListComponent,
-          *this->knownPluginList,
-          *this->appLookAndFeel,
-          *this
-      )
+    new PluginSelectionTableModel(
+      *this->pluginListComponent,
+      *this->knownPluginList,
+      *this->appLookAndFeel,
+      *this
+    )
   );
 
   this->knownPluginList->addChangeListener(this);
 
-  this->systemwideVSTProcess.deviceManager->addChangeListener(this);
-  if (this->systemwideVSTProcess.loadedPlugin) {
-    this->getPluginSelectionModel()->setSelected(this->systemwideVSTProcess.loadedPlugin->getPluginDescription());
+  if (this->systemwideVSTProcess.hasLoadedPlugin()) {
+    this->getPluginSelectionModel()->setSelected(this->systemwideVSTProcess.getLoadedPluginDescription());
   }
 
   this->addAndMakeVisible(*this->audioDeviceSelector);
@@ -58,8 +61,7 @@ ConfigurationComponent::ConfigurationComponent(SystemwideVSTProcess &systemwideV
   this->setSize(1024, 512);
 }
 
-ConfigurationComponent::~ConfigurationComponent() {
-  this->systemwideVSTProcess.deviceManager->removeChangeListener(this);
+ConfigurationComponent::~ConfigurationComponent () {
   this->knownPluginList->removeChangeListener(this);
   this->removeAllActionListeners();
 
@@ -67,19 +69,14 @@ ConfigurationComponent::~ConfigurationComponent() {
   this->setLookAndFeel(nullptr);
 }
 
-void ConfigurationComponent::changeListenerCallback(juce::ChangeBroadcaster *source) {
+void ConfigurationComponent::changeListenerCallback (juce::ChangeBroadcaster *source) {
   if (source == this->knownPluginList.get()) {
     this->savePluginList();
     return;
   }
-
-  if (this->systemwideVSTProcess.isDeviceManager(source)) {
-    this->systemwideVSTProcess.saveDeviceManager();
-    return;
-  }
 }
 
-void ConfigurationComponent::actionListenerCallback(const juce::String &message) {
+void ConfigurationComponent::actionListenerCallback (const juce::String &message) {
   if (message == MESSAGE_SELECTION_CHANGED) {
     juce::PluginDescription description = this->getPluginSelectionModel()->getSelected();
 
@@ -92,11 +89,11 @@ void ConfigurationComponent::actionListenerCallback(const juce::String &message)
   }
 }
 
-void ConfigurationComponent::paint(juce::Graphics &g) {
+void ConfigurationComponent::paint (juce::Graphics &g) {
   g.fillAll(this->getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
 }
 
-void ConfigurationComponent::resized() {
+void ConfigurationComponent::resized () {
   if (this->audioDeviceSelector && this->pluginListComponent) {
     auto rect = this->getLocalBounds();
     this->audioDeviceSelector->setBounds(rect.removeFromLeft(512).reduced(this->appLookAndFeel->padding));
@@ -105,11 +102,11 @@ void ConfigurationComponent::resized() {
   }
 }
 
-PluginSelectionTableModel *ConfigurationComponent::getPluginSelectionModel() {
+PluginSelectionTableModel *ConfigurationComponent::getPluginSelectionModel () {
   return dynamic_cast<PluginSelectionTableModel *>(this->pluginListComponent->getTableListBox().getModel());
 }
 
-void ConfigurationComponent::savePluginList() {
+void ConfigurationComponent::savePluginList () {
   for (
     const juce::PluginDescription &plugin : this->knownPluginList->getTypes()) {
     if (plugin.isInstrument) {

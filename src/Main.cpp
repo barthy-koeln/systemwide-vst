@@ -65,6 +65,7 @@ class systemwide_vstApplication : public juce::JUCEApplication, public juce::Act
   void createOrShowConfigWindow() {
     if (this->configurationWindow) {
       this->configurationWindow->setVisible(true);
+      this->configurationWindow->toFront(true);
       return;
     }
 
