@@ -6,7 +6,6 @@
 #include "PassthroughProcessor.h"
 #include "PluginWindow.h"
 #include "SystemwideVSTProcess.h"
-#include "DeviceSelectorComponent.h"
 
 class ConfigurationComponent :
     public juce::Component,
@@ -30,7 +29,6 @@ class ConfigurationComponent :
   std::unique_ptr<LookAndFeel> appLookAndFeel;
   std::unique_ptr<juce::KnownPluginList> knownPluginList;
   std::unique_ptr<juce::PluginListComponent> pluginListComponent;
-  std::unique_ptr<DeviceSelectorComponent> audioDeviceSelector;
 
   PluginSelectionTableModel *getPluginSelectionModel();
 

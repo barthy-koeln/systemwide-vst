@@ -31,7 +31,7 @@ class PluginSelectionTableModel : public juce::TableListBoxModel, public juce::A
       int /*height*/,
       bool rowIsSelected
   ) override {
-    g.fillAll(rowIsSelected ? this->lookAndFeel.primaryDark : this->lookAndFeel.background);
+    g.fillAll(rowIsSelected ? this->lookAndFeel.primaryDark : this->lookAndFeel.backdrop);
   }
 
   enum {
@@ -88,7 +88,7 @@ class PluginSelectionTableModel : public juce::TableListBoxModel, public juce::A
     g.setColour(
         isBlacklisted ?
         this->lookAndFeel.tertiary :
-        (isActive ? this->lookAndFeel.background : this->pluginListComponent.findColour(juce::ListBox::textColourId))
+        (isActive ? this->lookAndFeel.backdrop : this->pluginListComponent.findColour(juce::ListBox::textColourId))
     );
     g.setFont(juce::Font((float) height * 0.7f, nameCol == column ? juce::Font::bold : juce::Font::plain));
     g.drawFittedText(text, 4, 0, width - 6, height, juce::Justification::centredLeft, 1, 0.9f);

@@ -5,10 +5,11 @@
 #include "SettingsConstants.h"
 #include "MessagesConstants.h"
 
-class SystemwideVSTProcess : public juce::ActionListener, public juce::ChangeListener {
+class SystemwideVSTProcess : public juce::ActionListener, public juce::ChangeListener
+{
  public:
 
-  SystemwideVSTProcess() {
+  SystemwideVSTProcess () {
     this->deviceManager = std::make_unique<juce::AudioDeviceManager>();
     this->propertiesOptions = std::make_unique<juce::PropertiesFile::Options>();
     this->propertiesOptions->applicationName = ProjectInfo::projectName;
@@ -19,20 +20,31 @@ class SystemwideVSTProcess : public juce::ActionListener, public juce::ChangeLis
     this->applicationProperties->setStorageParameters(*this->propertiesOptions);
 
     std::unique_ptr<juce::XmlElement>
-        savedDeviceManager = this->applicationProperties->getUserSettings()->getXmlValue(SETTING_DEVICE_MANAGER);
+      savedDeviceManager = this->applicationProperties->getUserSettings()->getXmlValue(SETTING_DEVICE_MANAGER);
 
     SystemwideVSTProcess::doWithPermission(
-        juce::RuntimePermissions::recordAudio,
-        [&](bool granted) {
-          char inputChannels = granted ? 2 : 0;
+      juce::RuntimePermissions::recordAudio,
+      [&] (bool granted) {
 
-          if (savedDeviceManager) {
-            this->deviceManager->initialise(inputChannels, 2, savedDeviceManager.get(), true);
-            return;
-          }
-
-          this->deviceManager->initialiseWithDefaultDevices(inputChannels, 2);
-        }
+        this->deviceManager->initialise(
+          2,
+          2,
+          nullptr,
+          true,
+          "",
+          new juce::AudioDeviceManager::AudioDeviceSetup(
+            {
+              .outputDeviceName = "",
+              .inputDeviceName = "Playback/recording through the PulseAudio sound server",
+              .sampleRate = 0,
+              .bufferSize = 0,
+              .inputChannels = 0,
+              .useDefaultInputChannels = true,
+              .outputChannels = 0,
+              .useDefaultOutputChannels = true
+            }
+          ));
+      }
     );
 
     this->pluginFormatManager = std::make_unique<juce::AudioPluginFormatManager>();
@@ -43,25 +55,25 @@ class SystemwideVSTProcess : public juce::ActionListener, public juce::ChangeLis
     this->deviceManager->addChangeListener(this);
 
     auto currentDevice = this->deviceManager->getCurrentAudioDevice();
-
     if (nullptr == currentDevice) {
       return;
     }
 
     this->passThrough = std::make_unique<PassthroughProcessor>(
-        currentDevice->getActiveInputChannels().toInteger(),
-        currentDevice->getActiveOutputChannels().toInteger()
+      currentDevice->getActiveInputChannels().toInteger(),
+      currentDevice->getActiveOutputChannels().toInteger()
     );
   }
 
-  ~SystemwideVSTProcess() override {
+  ~SystemwideVSTProcess () override {
+    this->deviceManager->closeAudioDevice();
     this->deviceManager->removeChangeListener(this);
-    this->deviceManager->addAudioCallback(nullptr);
+    this->deviceManager->removeAudioCallback(this->audioProcessorPlayer.get());
   }
 
-  void loadSavedPlugin() {
+  void loadSavedPlugin () {
     std::unique_ptr<juce::XmlElement>
-        savedProcessor = this->applicationProperties->getUserSettings()->getXmlValue(SETTING_PROCESSOR);
+      savedProcessor = this->applicationProperties->getUserSettings()->getXmlValue(SETTING_PROCESSOR);
 
     if (savedProcessor) {
       auto plugin = std::make_unique<juce::PluginDescription>();
@@ -82,7 +94,7 @@ class SystemwideVSTProcess : public juce::ActionListener, public juce::ChangeLis
     this->audioProcessorPlayer->setProcessor(this->passThrough.get());
   }
 
-  [[nodiscard]] bool shouldShowConfig() const {
+  [[nodiscard]] bool shouldShowConfig () const {
     bool shouldShowConfig = !this->applicationProperties->getUserSettings()->getBoolValue(SETTING_NO_CONFIG, false);
 
     if (shouldShowConfig) {
@@ -93,7 +105,7 @@ class SystemwideVSTProcess : public juce::ActionListener, public juce::ChangeLis
     return shouldShowConfig;
   }
 
-  void loadPlugin(const juce::PluginDescription &plugin) {
+  void loadPlugin (const juce::PluginDescription &plugin) {
     juce::AudioIODevice *currentDevice = this->deviceManager->getCurrentAudioDevice();
     juce::String error;
 
@@ -111,10 +123,10 @@ class SystemwideVSTProcess : public juce::ActionListener, public juce::ChangeLis
     }
 
     this->loadedPlugin = this->pluginFormatManager->createPluginInstance(
-        plugin,
-        currentDevice->getCurrentSampleRate(),
-        currentDevice->getCurrentBufferSizeSamples(),
-        error
+      plugin,
+      currentDevice->getCurrentSampleRate(),
+      currentDevice->getCurrentBufferSizeSamples(),
+      error
     );
 
     if (!this->loadedPlugin) {
@@ -131,18 +143,18 @@ class SystemwideVSTProcess : public juce::ActionListener, public juce::ChangeLis
     }
   }
 
-  void savePluginList(juce::XmlElement *value) const {
+  void savePluginList (juce::XmlElement *value) const {
     this->saveValue(SETTING_PLUGIN_LIST, value);
   }
 
-  void saveDeviceManager() const {
+  void saveDeviceManager () const {
     std::unique_ptr<juce::XmlElement> deviceManagerToSave = this->deviceManager->createStateXml();
     if (deviceManagerToSave) {
       this->saveValue(SETTING_DEVICE_MANAGER, deviceManagerToSave.get());
     }
   }
 
-  void savePluginState() const {
+  void savePluginState () const {
     juce::MemoryBlock state;
     this->loadedPlugin->getStateInformation(state);
     this->applicationProperties->getUserSettings()->setValue(SETTING_PROCESSOR_STATE, state.toBase64Encoding());
@@ -150,11 +162,11 @@ class SystemwideVSTProcess : public juce::ActionListener, public juce::ChangeLis
     state.reset();
   }
 
-  bool isLoadedPlugin(juce::PluginDescription &description) const {
+  bool isLoadedPlugin (juce::PluginDescription &description) const {
     return description.fileOrIdentifier == this->loadedPlugin->getPluginDescription().fileOrIdentifier;
   }
 
-  void actionListenerCallback(const juce::String &message) override {
+  void actionListenerCallback (const juce::String &message) override {
     if (message == MESSAGE_CLOSE_PLUGIN) {
       this->savePluginState();
       this->deletePluginWindow();
@@ -167,7 +179,7 @@ class SystemwideVSTProcess : public juce::ActionListener, public juce::ChangeLis
     }
   }
 
-  void changeListenerCallback(juce::ChangeBroadcaster *source) override {
+  void changeListenerCallback (juce::ChangeBroadcaster *source) override {
     if (source == this->deviceManager.get()) {
       this->saveDeviceManager();
 
@@ -178,27 +190,27 @@ class SystemwideVSTProcess : public juce::ActionListener, public juce::ChangeLis
     }
   }
 
-  [[nodiscard]] std::unique_ptr<juce::XmlElement> getXmlValue(const std::string &name) const {
+  [[nodiscard]] std::unique_ptr<juce::XmlElement> getXmlValue (const std::string &name) const {
     return this->applicationProperties->getUserSettings()->getXmlValue(name);
   }
 
-  [[nodiscard]] juce::File getCrashFile() const {
+  [[nodiscard]] juce::File getCrashFile () const {
     return this->applicationProperties->getUserSettings()->getFile().getSiblingFile("CrashedPlugins");
   }
 
-  [[nodiscard]] bool hasLoadedPlugin() const {
+  [[nodiscard]] bool hasLoadedPlugin () const {
     return (bool) this->loadedPlugin;
   }
 
-  [[nodiscard]] juce::PluginDescription getLoadedPluginDescription() const {
+  [[nodiscard]] juce::PluginDescription getLoadedPluginDescription () const {
     return this->loadedPlugin->getPluginDescription();
   }
 
-  [[nodiscard]] juce::AudioDeviceManager &getDeviceManager() const {
+  [[nodiscard]] juce::AudioDeviceManager &getDeviceManager () const {
     return *this->deviceManager;
   }
 
-  [[nodiscard]] juce::AudioPluginFormatManager &getPluginFormatManager() const {
+  [[nodiscard]] juce::AudioPluginFormatManager &getPluginFormatManager () const {
     return *this->pluginFormatManager;
   }
  private:
@@ -211,7 +223,7 @@ class SystemwideVSTProcess : public juce::ActionListener, public juce::ChangeLis
   std::unique_ptr<juce::AudioProcessorPlayer> audioProcessorPlayer;
   std::unique_ptr<PluginWindow> pluginWindow;
 
-  void createOrShowPluginWindow() {
+  void createOrShowPluginWindow () {
     if (this->pluginWindow) {
       this->pluginWindow->setVisible(true);
       this->pluginWindow->toFront(true);
@@ -221,18 +233,18 @@ class SystemwideVSTProcess : public juce::ActionListener, public juce::ChangeLis
     this->pluginWindow = std::make_unique<PluginWindow>(*this->loadedPlugin, this);
   }
 
-  void deletePluginWindow() {
+  void deletePluginWindow () {
     this->pluginWindow.reset();
   }
 
-  void saveValue(const char *name, juce::XmlElement *value) const {
+  void saveValue (const char *name, juce::XmlElement *value) const {
     this->applicationProperties->getUserSettings()->setValue(name, value);
     this->applicationProperties->saveIfNeeded();
   }
 
-  static void doWithPermission(
-      juce::RuntimePermissions::PermissionID permission,
-      const std::function<void(bool)> &callback
+  static void doWithPermission (
+    juce::RuntimePermissions::PermissionID permission,
+    const std::function<void (bool)> &callback
   ) {
     bool requiresPermission = juce::RuntimePermissions::isRequired(permission);
     bool hasPermission = juce::RuntimePermissions::isGranted(permission);
