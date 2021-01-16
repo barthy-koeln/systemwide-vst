@@ -9,21 +9,20 @@ ConfigurationComponent::ConfigurationComponent (SystemwideVSTProcess &systemwide
 
   this->addActionListener(&this->systemwideVSTProcess);
 
-  /*this->audioDeviceSelector = std::make_unique<juce::AudioDeviceSelectorComponent>(
-      this->systemwideVSTProcess.getDeviceManager(),
-      0,
-      2,
-      0,
-      2,
-      false,
-      false,
-      false,
-      false
-  );*/
+  this->audioDeviceSelector = std::make_unique<juce::AudioDeviceSelectorComponent>(
+    this->systemwideVSTProcess.getDeviceManager(),
+    0,
+    2,
+    0,
+    2,
+    false,
+    false,
+    false,
+    false
+  );
 
   this->knownPluginList = std::make_unique<juce::KnownPluginList>();
-  std::unique_ptr<juce::XmlElement>
-    xmlPluginList = this->systemwideVSTProcess.getXmlValue(SETTING_PLUGIN_LIST);
+  std::unique_ptr<juce::XmlElement> xmlPluginList = this->systemwideVSTProcess.getXmlValue(SETTING_PLUGIN_LIST);
   if (xmlPluginList) {
     this->knownPluginList->recreateFromXml(*xmlPluginList);
   }
@@ -51,6 +50,7 @@ ConfigurationComponent::ConfigurationComponent (SystemwideVSTProcess &systemwide
     this->getPluginSelectionModel()->setSelected(this->systemwideVSTProcess.getLoadedPluginDescription());
   }
 
+  this->addAndMakeVisible(*this->audioDeviceSelector);
   this->addAndMakeVisible(*this->pluginListComponent);
   this->setSize(1024, 512);
 }
@@ -88,9 +88,10 @@ void ConfigurationComponent::paint (juce::Graphics &g) {
 }
 
 void ConfigurationComponent::resized () {
-  if (this->pluginListComponent) {
+  if (this->audioDeviceSelector && this->pluginListComponent) {
     auto rect = this->getLocalBounds();
-    this->pluginListComponent->setBounds(rect.reduced(this->appLookAndFeel->padding));
+    this->audioDeviceSelector->setBounds(rect.removeFromLeft(512).reduced(this->appLookAndFeel->padding));
+    this->pluginListComponent->setBounds(rect.removeFromRight(512).reduced(this->appLookAndFeel->padding));
     return;
   }
 }

@@ -32,6 +32,8 @@ class systemwide_vstApplication : public juce::JUCEApplication, public juce::Act
     this->trayIconThread = std::make_unique<TrayIconThread>();
     this->trayIconThread->startThread(juce::Thread::realtimeAudioPriority);
     this->trayIconThread->addActionListener(this->systemwideVSTProcess.get());
+
+    this->systemwideVSTProcess->addActionListener(this);
     this->trayIconThread->addActionListener(this);
   }
 

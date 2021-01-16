@@ -29,6 +29,7 @@ class ConfigurationComponent :
   std::unique_ptr<LookAndFeel> appLookAndFeel;
   std::unique_ptr<juce::KnownPluginList> knownPluginList;
   std::unique_ptr<juce::PluginListComponent> pluginListComponent;
+  std::unique_ptr<juce::AudioDeviceSelectorComponent> audioDeviceSelector;
 
   PluginSelectionTableModel *getPluginSelectionModel();
 

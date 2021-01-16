@@ -16,8 +16,8 @@ class LookAndFeel : public juce::LookAndFeel_V4
 
   LookAndFeel () {
     this->setColour(juce::ResizableWindow::backgroundColourId, this->backdrop);
-    this->setColour(juce::Label::backgroundColourId, this->background);
-    this->setColour(juce::ListBox::backgroundColourId, this->background);
+    this->setColour(juce::Label::backgroundColourId, this->backdrop);
+    this->setColour(juce::ListBox::backgroundColourId, this->backdrop);
 
     this->setColour(juce::ComboBox::backgroundColourId, this->background);
 
@@ -149,6 +149,6 @@ class LookAndFeel : public juce::LookAndFeel_V4
 
   void drawPopupMenuBackground (juce::Graphics &g, int width, int height) override {
     g.setColour(this->background);
-    g.fillRoundedRectangle(0, 0, (float) width, (float) height, 8);
+    g.fillRect(0, 0, width, height);
   }
 };

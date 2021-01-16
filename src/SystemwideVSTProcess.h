@@ -5,7 +5,7 @@
 #include "SettingsConstants.h"
 #include "MessagesConstants.h"
 
-class SystemwideVSTProcess : public juce::ActionListener, public juce::ChangeListener
+ class SystemwideVSTProcess : public juce::ActionListener, public juce::ActionBroadcaster, public juce::ChangeListener
 {
  public:
 
@@ -163,6 +163,10 @@ class SystemwideVSTProcess : public juce::ActionListener, public juce::ChangeLis
   }
 
   bool isLoadedPlugin (juce::PluginDescription &description) const {
+    if(!this->loadedPlugin){
+      return false;
+    }
+
     return description.fileOrIdentifier == this->loadedPlugin->getPluginDescription().fileOrIdentifier;
   }
 
@@ -224,6 +228,11 @@ class SystemwideVSTProcess : public juce::ActionListener, public juce::ChangeLis
   std::unique_ptr<PluginWindow> pluginWindow;
 
   void createOrShowPluginWindow () {
+    if(!this->loadedPlugin){
+      this->sendActionMessage(MESSAGE_SHOW_CONFIG);
+      return;
+    }
+
     if (this->pluginWindow) {
       this->pluginWindow->setVisible(true);
       this->pluginWindow->toFront(true);
