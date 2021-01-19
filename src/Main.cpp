@@ -4,24 +4,27 @@
 #include "ConfigurationWindow.h"
 #include "SystemwideVSTProcess.h"
 #include "TrayIconThread.h"
+#include "PulseAudioSink.h"
 
-class systemwide_vstApplication : public juce::JUCEApplication, public juce::ActionListener {
+class systemwide_vstApplication : public juce::JUCEApplication, public juce::ActionListener
+{
  public:
-  systemwide_vstApplication() = default;
+  systemwide_vstApplication () = default;
 
-  const juce::String getApplicationName() override { // NOLINT(readability-const-return-type)
+  const juce::String getApplicationName () override { // NOLINT(readability-const-return-type)
     return ProjectInfo::projectName;
   }
 
-  const juce::String getApplicationVersion() override { // NOLINT(readability-const-return-type)
+  const juce::String getApplicationVersion () override { // NOLINT(readability-const-return-type)
     return ProjectInfo::versionString;
   }
 
-  bool moreThanOneInstanceAllowed() override {
+  bool moreThanOneInstanceAllowed () override {
     return false;
   }
 
-  void initialise(const juce::String &commandLine) override {
+  void initialise (const juce::String &commandLine) override {
+    this->pulseAudioSink = std::make_unique<PulseAudioSink>();
     this->systemwideVSTProcess = std::make_unique<SystemwideVSTProcess>();
     this->systemwideVSTProcess->loadSavedPlugin();
 
@@ -37,17 +40,18 @@ class systemwide_vstApplication : public juce::JUCEApplication, public juce::Act
     this->trayIconThread->addActionListener(this);
   }
 
-  void shutdown() override {
+  void shutdown () override {
+    this->pulseAudioSink.reset();
     this->trayIconThread->stopThread(3000);
   }
 
-  void systemRequestedQuit() override {
+  void systemRequestedQuit () override {
     juce::JUCEApplicationBase::quit();
   }
 
-  void anotherInstanceStarted(const juce::String &commandLine) override {}
+  void anotherInstanceStarted (const juce::String &commandLine) override {}
 
-  void actionListenerCallback(const juce::String &message) override {
+  void actionListenerCallback (const juce::String &message) override {
     if (message == MESSAGE_CLOSE_CONFIG) {
       this->deleteConfigWindow();
       return;
@@ -64,7 +68,7 @@ class systemwide_vstApplication : public juce::JUCEApplication, public juce::Act
     }
   }
 
-  void createOrShowConfigWindow() {
+  void createOrShowConfigWindow () {
     if (this->configurationWindow) {
       this->configurationWindow->setVisible(true);
       this->configurationWindow->toFront(true);
@@ -74,11 +78,12 @@ class systemwide_vstApplication : public juce::JUCEApplication, public juce::Act
     this->configurationWindow = std::make_unique<ConfigurationWindow>(*this->systemwideVSTProcess, this);
   }
 
-  void deleteConfigWindow() {
+  void deleteConfigWindow () {
     this->configurationWindow.reset();
   }
 
  private:
+  std::unique_ptr<PulseAudioSink> pulseAudioSink;
   std::unique_ptr<ConfigurationWindow> configurationWindow;
   std::unique_ptr<SystemwideVSTProcess> systemwideVSTProcess;
   std::unique_ptr<TrayIconThread> trayIconThread;

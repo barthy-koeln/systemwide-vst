@@ -36,6 +36,7 @@ if (UNIX AND NOT APPLE)
             "./src/PluginSelectionTableModel.h"
             "./src/Main.cpp"
             "./src/ConfigurationComponent.cpp"
+            "./src/PulseAudioSink.h"
             "./JuceLibraryCode/BinaryData.cpp"
             "./JuceLibraryCode/BinaryData.h"
             "./JuceLibraryCode/include_juce_audio_basics.cpp"
@@ -50,8 +51,7 @@ if (UNIX AND NOT APPLE)
             "./JuceLibraryCode/include_juce_graphics.cpp"
             "./JuceLibraryCode/include_juce_gui_basics.cpp"
             "./JuceLibraryCode/include_juce_gui_extra.cpp"
-            "./JuceLibraryCode/JuceHeader.h"
-            )
+            "./JuceLibraryCode/JuceHeader.h")
 
     set_source_files_properties("./assets/images/logo.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
     set_source_files_properties("./src/TrayIconThread.h" PROPERTIES HEADER_FILE_ONLY TRUE)

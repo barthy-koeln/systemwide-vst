@@ -15,15 +15,24 @@ class LookAndFeel : public juce::LookAndFeel_V4
   juce::Colour tertiary = juce::Colour(0xffb33951);
 
   LookAndFeel () {
-    this->setColour(juce::ResizableWindow::backgroundColourId, this->backdrop);
-    this->setColour(juce::Label::backgroundColourId, this->backdrop);
-    this->setColour(juce::ListBox::backgroundColourId, this->backdrop);
-
-    this->setColour(juce::ComboBox::backgroundColourId, this->background);
+    this->setColourScheme(
+      juce::LookAndFeel_V4::ColourScheme(
+        this->backdrop,     // windowBackground
+        this->backdrop,     // widgetBackground
+        this->background,   // menuBackground
+        this->textColour,   // outline
+        this->textColour,   // defaultText
+        this->textColour,   // defaultFill
+        this->textColour,   // highlightedText
+        this->primary,      // highlightedFill
+        this->textColour    // menuText
+      )
+    );
 
     this->setColour(juce::TextButton::buttonColourId, this->primary);
     this->setColour(juce::TextButton::buttonOnColourId, this->primaryDark);
 
+    LookAndFeel_V4::setDefaultLookAndFeel(this);
     this->setUsingNativeAlertWindows(true);
 
     juce::Font::setDefaultMinimumHorizontalScaleFactor(1.0f);
@@ -53,98 +62,26 @@ class LookAndFeel : public juce::LookAndFeel_V4
   }
 
   juce::Font getPopupMenuFont () override {
-    return juce::Font(14.0f);
+    return juce::Font(16.0f);
   }
 
   juce::PopupMenu::Options getOptionsForComboBoxPopupMenu (juce::ComboBox &box, juce::Label &label) override {
     auto boxBounds = box.getScreenBounds();
 
-    auto boxBoundOffset = boxBounds.withTop(boxBounds.getBottom() + this->padding).withHeight(boxBounds.getHeight());
+    auto boxBoundOffset = boxBounds
+      .withX(boxBounds.getBottomLeft().x)
+      .withY(boxBounds.getBottomLeft().y + 2)
+      .withWidth(0)
+      .withHeight(0);
 
     return juce::PopupMenu::Options()
-      .withTargetScreenArea(boxBoundOffset)
       .withTargetComponent(&box)
+      .withTargetScreenArea(boxBoundOffset)
       .withItemThatMustBeVisible(box.getSelectedId())
       .withMinimumWidth(box.getWidth())
       .withMaximumNumColumns(1)
-      .withStandardItemHeight(label.getHeight());
-  }
-
-  void drawPopupMenuItem (
-    juce::Graphics &g,
-    const juce::Rectangle<int> &area,
-    const bool isSeparator,
-    const bool isActive,
-    const bool isHighlighted,
-    const bool isTicked,
-    const bool hasSubMenu,
-    const juce::String &text,
-    const juce::String &shortcutKeyText,
-    const juce::Drawable *icon,
-    const juce::Colour *const textColourToUse
-  ) override {
-    if (isSeparator) {
-      auto rect = area.reduced(this->padding, 0).withHeight(2);
-      g.setColour(this->background);
-      g.fillRect(rect);
-
-      return;
-    }
-
-    auto finalTextColour = textColourToUse ?: &this->textColour;
-    auto rect = area;
-
-    if (isHighlighted || isTicked) {
-      g.setColour(isTicked ? this->primary : this->primaryDark);
-      g.fillRect(rect);
-    }
-
-    juce::Font font = getPopupMenuFont();
-    auto maxFontHeight = (float) area.getHeight() / 1.3f;
-    if (font.getHeight() > maxFontHeight) {
-      font.setHeight(maxFontHeight);
-    }
-
-    g.setFont(font);
-
-    if (icon != nullptr) {
-      auto iconArea = rect.removeFromLeft((rect.getHeight() * 5) / 4).reduced(3).toFloat();
-      icon->drawWithin(
-        g,
-        iconArea,
-        (unsigned) juce::RectanglePlacement::centred | (unsigned) juce::RectanglePlacement::onlyReduceInSize,
-        1.0f
-      );
-    }
-
-    if (hasSubMenu) {
-      auto arrowH = 0.6f * getPopupMenuFont().getAscent();
-
-      auto x = (float) rect.removeFromRight((int) arrowH).getX();
-      auto halfH = (float) rect.getCentreY();
-
-      juce::Path p;
-      p.addTriangle(
-        x, halfH - arrowH * 0.5f,
-        x, halfH + arrowH * 0.5f,
-        x + arrowH * 0.6f, halfH
-      );
-
-      g.fillPath(p);
-    }
-
-    rect.reduce(this->padding, 0);
-    g.setColour(isHighlighted ? findColour(juce::PopupMenu::highlightedTextColourId) : *finalTextColour);
-    g.drawFittedText(text, rect, juce::Justification::centredLeft, 1);
-
-    if (shortcutKeyText.isNotEmpty()) {
-      juce::Font f2(font);
-      f2.setHeight(f2.getHeight() * 0.75f);
-      f2.setHorizontalScale(0.95f);
-      g.setFont(f2);
-
-      g.drawText(shortcutKeyText, rect, juce::Justification::centredRight, true);
-    }
+      .withStandardItemHeight(label.getHeight())
+      .withPreferredPopupDirection(juce::PopupMenu::Options::PopupDirection::downwards);
   }
 
   void drawPopupMenuBackground (juce::Graphics &g, int width, int height) override {

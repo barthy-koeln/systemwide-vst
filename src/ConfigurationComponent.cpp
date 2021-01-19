@@ -5,7 +5,6 @@
 ConfigurationComponent::ConfigurationComponent (SystemwideVSTProcess &systemwideVSTProcess) :
   systemwideVSTProcess(systemwideVSTProcess) {
   this->appLookAndFeel = std::make_unique<LookAndFeel>();
-  this->setLookAndFeel(this->appLookAndFeel.get());
 
   this->addActionListener(&this->systemwideVSTProcess);
 
@@ -17,7 +16,7 @@ ConfigurationComponent::ConfigurationComponent (SystemwideVSTProcess &systemwide
     2,
     false,
     false,
-    false,
+    true,
     false
   );
 
