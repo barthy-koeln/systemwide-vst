@@ -4,7 +4,7 @@
 #include "ConfigurationWindow.h"
 #include "SystemwideVSTProcess.h"
 #include "TrayIconThread.h"
-#include "PulseAudioSink.h"
+#include "CommandRunner.h"
 
 class systemwide_vstApplication : public juce::JUCEApplication, public juce::ActionListener
 {
@@ -24,9 +24,11 @@ class systemwide_vstApplication : public juce::JUCEApplication, public juce::Act
   }
 
   void initialise (const juce::String &commandLine) override {
-    this->pulseAudioSink = std::make_unique<PulseAudioSink>();
+    this->commandRunner = std::make_unique<CommandRunner>();
     this->systemwideVSTProcess = std::make_unique<SystemwideVSTProcess>();
     this->systemwideVSTProcess->loadSavedPlugin();
+
+    this->commandRunner->createPulseSink();
 
     if (this->systemwideVSTProcess->shouldShowConfig()) {
       this->createOrShowConfigWindow();
@@ -41,7 +43,8 @@ class systemwide_vstApplication : public juce::JUCEApplication, public juce::Act
   }
 
   void shutdown () override {
-    this->pulseAudioSink.reset();
+    this->commandRunner->removePulseSink();
+    this->commandRunner.reset();
     this->trayIconThread->stopThread(3000);
   }
 
@@ -66,6 +69,11 @@ class systemwide_vstApplication : public juce::JUCEApplication, public juce::Act
       juce::JUCEApplicationBase::quit();
       return;
     }
+
+    if (message == MESSAGE_SHOW_PAVUCONTROL) {
+      this->commandRunner->openPulseAudioVolumeControl();
+      return;
+    }
   }
 
   void createOrShowConfigWindow () {
@@ -83,7 +91,7 @@ class systemwide_vstApplication : public juce::JUCEApplication, public juce::Act
   }
 
  private:
-  std::unique_ptr<PulseAudioSink> pulseAudioSink;
+  std::unique_ptr<CommandRunner> commandRunner;
   std::unique_ptr<ConfigurationWindow> configurationWindow;
   std::unique_ptr<SystemwideVSTProcess> systemwideVSTProcess;
   std::unique_ptr<TrayIconThread> trayIconThread;

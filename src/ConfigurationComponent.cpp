@@ -1,6 +1,7 @@
 #include "ConfigurationComponent.h"
 #include "PluginSelectionTableModel.h"
 #include "SettingsConstants.h"
+#define  PANEL_SIZE 512
 
 ConfigurationComponent::ConfigurationComponent (SystemwideVSTProcess &systemwideVSTProcess) :
   systemwideVSTProcess(systemwideVSTProcess) {
@@ -49,9 +50,28 @@ ConfigurationComponent::ConfigurationComponent (SystemwideVSTProcess &systemwide
     this->getPluginSelectionModel()->setSelected(this->systemwideVSTProcess.getLoadedPluginDescription());
   }
 
+  juce::String urlPath("https://github.com/sponsors/barthy-koeln");
+  juce::String buttonText("Sponsor on GitHub");
+  juce::URL url(urlPath);
+  this->sponsorButton.setButtonText(buttonText);
+  this->sponsorButton.setURL(url);
+
+  this->versionLabel.setText(
+    juce::String("SystemwideVST version ") + APP_VERSION,
+    juce::NotificationType::dontSendNotification
+  );
+
+  this->sponsorButton.setFont(
+    this->versionLabel.getFont(),
+    false,
+    juce::Justification::right
+  );
+
   this->addAndMakeVisible(*this->audioDeviceSelector);
   this->addAndMakeVisible(*this->pluginListComponent);
-  this->setSize(1024, 512);
+  this->addAndMakeVisible(this->versionLabel);
+  this->addAndMakeVisible(this->sponsorButton);
+  this->setSize(2 * PANEL_SIZE, PANEL_SIZE);
 }
 
 ConfigurationComponent::~ConfigurationComponent () {
@@ -87,12 +107,66 @@ void ConfigurationComponent::paint (juce::Graphics &g) {
 }
 
 void ConfigurationComponent::resized () {
+  juce::FlexBox windowBox;
+  juce::FlexBox panelBox;
+  juce::FlexBox finePrintBox;
+
+  panelBox.flexDirection = juce::FlexBox::Direction::row;
+  panelBox.alignItems = juce::FlexBox::AlignItems::center;
+  panelBox.flexWrap = juce::FlexBox::Wrap::wrap;
+
   if (this->audioDeviceSelector && this->pluginListComponent) {
-    auto rect = this->getLocalBounds();
-    this->audioDeviceSelector->setBounds(rect.removeFromLeft(512).reduced(this->appLookAndFeel->padding));
-    this->pluginListComponent->setBounds(rect.removeFromRight(512).reduced(this->appLookAndFeel->padding));
-    return;
+    panelBox.items.add(
+      juce::FlexItem(*this->audioDeviceSelector)
+        .withWidth(PANEL_SIZE - (2 * this->appLookAndFeel->padding))
+        .withHeight(.5 * PANEL_SIZE)
+    );
+
+    panelBox.items.add(
+      juce::FlexItem(*this->pluginListComponent)
+        .withMinWidth(PANEL_SIZE)
+        .withHeight(.5 * PANEL_SIZE)
+        .withMargin(juce::FlexItem::Margin(12, 0, 0, 0))
+    );
   }
+
+  finePrintBox.flexDirection = juce::FlexBox::Direction::row;
+  finePrintBox.alignItems = juce::FlexBox::AlignItems::flexEnd;
+  finePrintBox.justifyContent = juce::FlexBox::JustifyContent::spaceBetween;
+  finePrintBox.flexWrap = juce::FlexBox::Wrap::noWrap;
+
+  finePrintBox.items.add(
+    juce::FlexItem(this->versionLabel)
+      .withHeight(32.0f)
+      .withFlex(1, 0, juce::FlexItem::autoValue)
+      .withAlignSelf(juce::FlexItem::AlignSelf::flexEnd)
+  );
+  finePrintBox.items.add(
+    juce::FlexItem(this->sponsorButton)
+      .withHeight(32.0f)
+      .withWidth((float) this->sponsorButton.getWidth())
+      .withFlex(1, 0, juce::FlexItem::autoValue)
+      .withAlignSelf(juce::FlexItem::AlignSelf::flexEnd)
+  );
+
+  windowBox.flexDirection = juce::FlexBox::Direction::column;
+  windowBox.alignItems = juce::FlexBox::AlignItems::flexStart;
+  windowBox.justifyContent = juce::FlexBox::JustifyContent::spaceBetween;
+  windowBox.flexWrap = juce::FlexBox::Wrap::noWrap;
+
+  windowBox.items.add(
+    juce::FlexItem(panelBox)
+      .withFlex(1, 0, juce::FlexItem::autoValue)
+      .withAlignSelf(juce::FlexItem::AlignSelf::stretch)
+  );
+  windowBox.items.add(
+    juce::FlexItem(finePrintBox)
+      .withFlex(1, 0, juce::FlexItem::autoValue)
+      .withMargin(juce::FlexItem::Margin(this->appLookAndFeel->padding, 0, 0, 0))
+      .withAlignSelf(juce::FlexItem::AlignSelf::stretch)
+  );
+
+  windowBox.performLayout(this->getLocalBounds().reduced(this->appLookAndFeel->padding).toFloat());
 }
 
 PluginSelectionTableModel *ConfigurationComponent::getPluginSelectionModel () {

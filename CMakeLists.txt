@@ -3,6 +3,8 @@
 
 cmake_minimum_required(VERSION 3.12)
 
+add_compile_definitions(APP_VERSION="0.1.0")
+
 add_subdirectory(../../JUCE {CMAKE_CURRENT_BINARY_DIR}/juce)
 
 if (NOT CMAKE_BUILD_TYPE)
@@ -36,7 +38,7 @@ if (UNIX AND NOT APPLE)
             "./src/PluginSelectionTableModel.h"
             "./src/Main.cpp"
             "./src/ConfigurationComponent.cpp"
-            "./src/PulseAudioSink.h"
+            "src/CommandRunner.h"
             "./JuceLibraryCode/BinaryData.cpp"
             "./JuceLibraryCode/BinaryData.h"
             "./JuceLibraryCode/include_juce_audio_basics.cpp"
@@ -51,7 +53,7 @@ if (UNIX AND NOT APPLE)
             "./JuceLibraryCode/include_juce_graphics.cpp"
             "./JuceLibraryCode/include_juce_gui_basics.cpp"
             "./JuceLibraryCode/include_juce_gui_extra.cpp"
-            "./JuceLibraryCode/JuceHeader.h")
+            "./JuceLibraryCode/JuceHeader.h" src/CommandRunner.h)
 
     set_source_files_properties("./assets/images/logo.svg" PROPERTIES HEADER_FILE_ONLY TRUE)
     set_source_files_properties("./src/TrayIconThread.h" PROPERTIES HEADER_FILE_ONLY TRUE)
@@ -210,6 +212,7 @@ if (UNIX AND NOT APPLE)
                 "./JuceLibraryCode"
                 "~/JUCE/modules"
                 "/home/barthy/Documents/lib/tray"
+                "/home/barthy/Documents/lib/vstsdk2.4"
                 ${ALSA_INCLUDE_DIRS}
                 ${FREETYPE2_INCLUDE_DIRS}
                 ${GTK+-3.0_INCLUDE_DIRS}

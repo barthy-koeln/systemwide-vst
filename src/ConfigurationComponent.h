@@ -30,6 +30,8 @@ class ConfigurationComponent :
   std::unique_ptr<juce::KnownPluginList> knownPluginList;
   std::unique_ptr<juce::PluginListComponent> pluginListComponent;
   std::unique_ptr<juce::AudioDeviceSelectorComponent> audioDeviceSelector;
+  juce::HyperlinkButton sponsorButton;
+  juce::Label versionLabel;
 
   PluginSelectionTableModel *getPluginSelectionModel();
 

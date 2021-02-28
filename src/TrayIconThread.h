@@ -40,6 +40,17 @@ class TrayIconThread : public juce::Thread, public juce::ActionBroadcaster {
             },
             .context = this
         },
+        {
+          .text = "PulseAudio Volume Control",
+          .disabled = 0,
+          .checked = 0,
+          .checkbox = 0,
+          .cb = [](struct tray_menu *item) {
+            auto thread = (TrayIconThread *) item->context;
+            thread->sendActionMessage(MESSAGE_SHOW_PAVUCONTROL);
+          },
+          .context = this
+        },
         {"-", 0, 0, 0, nullptr, nullptr},
         {
             .text = "Quit",
