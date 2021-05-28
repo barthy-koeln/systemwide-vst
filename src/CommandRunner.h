@@ -15,7 +15,7 @@ class CommandRunner
 
   void createPulseSink () {
     this->handle = CommandRunner::run(
-      "pactl load-module module-null-sink sink_properties=device.description=SystemwideIO sink_name=SystemwideIO",
+      "pactl load-module module-jack-sink sink_properties=device.description=SystemwideIO client_name=SystemwideIO sink_name=SystemwideIO",
       PULSE_AUDIO_SINK_ERROR
     );
   }
@@ -38,7 +38,7 @@ class CommandRunner
 
   void openSponsorshipPage () {
     CommandRunner::run(
-      "xdg-open https://github.com/sponsors/barthy-koeln",
+      "xdg-open https://github.com/sponsors/barthy-koeln &",
       PULSE_AUDIO_CONTROL_ERROR
     );
   }

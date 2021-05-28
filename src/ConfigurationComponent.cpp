@@ -57,7 +57,7 @@ ConfigurationComponent::ConfigurationComponent (SystemwideVSTProcess &systemwide
   this->sponsorButton.setURL(url);
 
   this->versionLabel.setText(
-    juce::String("SystemwideVST version ") + APP_VERSION,
+    juce::String("SystemwideVST version ") + ProjectInfo::versionString,
     juce::NotificationType::dontSendNotification
   );
 
