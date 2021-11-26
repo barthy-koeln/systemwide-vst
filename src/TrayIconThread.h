@@ -1,80 +1,82 @@
-
 #if defined (LINUX)
-#define TRAY_APPINDICATOR 1
-#define JUCE_LINUX 1
 
-#include "tray.h"
+#define TRAY_APPINDICATOR 1
+
+#include <tray.h>
 #include <gtk/gtkx.h>
 #include <JuceHeader.h>
 
-class TrayIconThread : public juce::Thread, public juce::ActionBroadcaster {
+class TrayIconThread :
+  public juce::Thread,
+  public juce::ActionBroadcaster {
 
- public:
-  TrayIconThread() : Thread("TrayIconThread") {}
+public:
+    TrayIconThread () :
+      Thread("TrayIconThread") {}
 
-  ~TrayIconThread() override {
-    this->removeAllActionListeners();
-  }
+    ~TrayIconThread () override {
+        this->removeAllActionListeners();
+    }
 
-  void run() override {
-    struct tray_menu tray_menu[] = {
-        {
+    void run () override {
+        ::tray_menu tray_menu[] = {
+          {
             .text = "Show VST Editor",
             .disabled = 0,
             .checked = 0,
             .checkbox = 0,
-            .cb = [](struct tray_menu *item) {
-              auto thread = (TrayIconThread *) item->context;
-              thread->sendActionMessage(MESSAGE_SHOW_PLUGIN);
+            .cb = [] (::tray_menu *item) {
+                auto thread = (TrayIconThread *) item->context;
+                thread->sendActionMessage(MESSAGE_SHOW_PLUGIN);
             },
             .context = this
-        },
-        {
+          },
+          {
             .text = "Preferences",
             .disabled = 0,
             .checked = 0,
             .checkbox = 0,
-            .cb = [](struct tray_menu *item) {
-              auto thread = (TrayIconThread *) item->context;
-              thread->sendActionMessage(MESSAGE_SHOW_CONFIG);
+            .cb = [] (::tray_menu *item) {
+                auto thread = (TrayIconThread *) item->context;
+                thread->sendActionMessage(MESSAGE_SHOW_CONFIG);
             },
             .context = this
-        },
-        {
-          .text = "PulseAudio Volume Control",
-          .disabled = 0,
-          .checked = 0,
-          .checkbox = 0,
-          .cb = [](struct tray_menu *item) {
-            auto thread = (TrayIconThread *) item->context;
-            thread->sendActionMessage(MESSAGE_SHOW_PAVUCONTROL);
           },
-          .context = this
-        },
-        {"-", 0, 0, 0, nullptr, nullptr},
-        {
+          {
+            .text = "PulseAudio Volume Control",
+            .disabled = 0,
+            .checked = 0,
+            .checkbox = 0,
+            .cb = [] (::tray_menu *item) {
+                auto thread = (TrayIconThread *) item->context;
+                thread->sendActionMessage(MESSAGE_SHOW_PAVUCONTROL);
+            },
+            .context = this
+          },
+          {"-",     0, 0, 0, nullptr, nullptr},
+          {
             .text = "Quit",
             .disabled = 0,
             .checked = 0,
             .checkbox = 0,
-            .cb = [](struct tray_menu *item) {
-              auto thread = (TrayIconThread *) item->context;
-              thread->sendActionMessage(MESSAGE_QUIT);
+            .cb = [] (::tray_menu *item) {
+                auto thread = (TrayIconThread *) item->context;
+                thread->sendActionMessage(MESSAGE_QUIT);
             },
             .context = this
-        },
-        {nullptr, 0, 0, 0, nullptr, nullptr}
-    };
+          },
+          {nullptr, 0, 0, 0, nullptr, nullptr}
+        };
 
-    struct tray tray = {
-        .icon = "/home/barthy/Documents/systemwide_vst/assets/images/logo.svg", // TODO don't forget this one
-        .menu = tray_menu
-    };
+        ::tray tray = {
+          .icon = "/home/barthy/Documents/systemwide_vst/assets/images/logo.svg", // TODO don't forget this one
+          .menu = tray_menu
+        };
 
-    tray_init(&tray);
-    while (tray_loop(0) == 0 && !this->threadShouldExit()) {}
-    tray_exit();
-  }
+        tray_init(&tray);
+        while (tray_loop(0) == 0 && !this->threadShouldExit()) {}
+        tray_exit();
+    }
 };
 
 #endif

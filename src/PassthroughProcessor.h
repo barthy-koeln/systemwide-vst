@@ -1,89 +1,55 @@
-// Copyright (c) 2012 Bg Porter.
 #pragma once
 
 #include <JuceHeader.h>
 
-/**
- * @class PassthroughProcessor
- *
- * No-op audio processor that we're really only using for test. You can create an
- * instance with 1 or 2 input/output channels. Whatever comes in goes out unaffected.
- */
-class PassthroughProcessor : public juce::AudioProcessor {
+class PassthroughProcessor :
+  public juce::AudioProcessor {
+public:
+    PassthroughProcessor () :
+      juce::AudioProcessor(
+        BusesProperties()
+          .withInput("Input", juce::AudioChannelSet::stereo())
+          .withOutput("Output", juce::AudioChannelSet::stereo()
+          )
+      ) {}
 
- public:
-  /**
-   *  @param inputChannelCount number of desired input channels
-   *  @param outputChannelCount number of desired output channels (if ==0, will match the setting of the input channels.)
-   */
-  explicit PassthroughProcessor(int inputChannelCount = 1, int outputChannelCount = 0);
 
-  ~PassthroughProcessor() override;
+    void prepareToPlay (double, int) override {}
 
-  /**
-   * get the name of this processor.
-   * @return String filled with the name.
-   */
-  const juce::String getName() const override;
+    void releaseResources () override {}
 
-  /**
-   * Called before playback starts to get things ready.
-   * @param sampleRate samples per second.
-   * @param estimatedSamplesPerBlock
-   */
-  void prepareToPlay(double sampleRate, int estimatedSamplesPerBlock) override;
+    void processBlock (juce::AudioSampleBuffer &, juce::MidiBuffer &) override {}
 
-  void releaseResources() override;
 
-  void processBlock(juce::AudioSampleBuffer &buffer, juce::MidiBuffer &midiMessages) override;
+    juce::AudioProcessorEditor *createEditor () override { return nullptr; }
 
-  const juce::String getInputChannelName(int channelIndex) const override;
+    bool hasEditor () const override { return false; }
 
-  const juce::String getOutputChannelName(int channelIndex) const override;
 
-  bool isInputChannelStereoPair(int index) const override;
+    const juce::String getName () const override { return {}; } // NOLINT(readability-const-return-type)
 
-  bool isOutputChannelStereoPair(int index) const override;
+    bool acceptsMidi () const override { return false; }
 
-  bool silenceInProducesSilenceOut() const override;
+    bool producesMidi () const override { return false; }
 
-  bool acceptsMidi() const override;
+    double getTailLengthSeconds () const override { return 0; }
 
-  bool producesMidi() const override;
 
-  juce::AudioProcessorEditor *createEditor() override;
+    int getNumPrograms () override { return 0; }
 
-  bool hasEditor() const override;
+    int getCurrentProgram () override { return 0; }
 
-  int getNumParameters() override;
+    void setCurrentProgram (int) override {}
 
-  const juce::String getParameterName(int parameterIndex) override;
+    const juce::String getProgramName (int) override { return {}; } // NOLINT(readability-const-return-type)
 
-  float getParameter(int parameterIndex) override;
+    void changeProgramName (int, const juce::String &) override {}
 
-  const juce::String getParameterText(int parameterIndex) override;
+    void getStateInformation (juce::MemoryBlock &) override {}
 
-  void setParameter(int parameterIndex, float newValue) override;
+    void setStateInformation (const void *, int) override {}
 
-  int getNumPrograms() override;
-
-  int getCurrentProgram() override;
-
-  void setCurrentProgram(int index) override;
-
-  const juce::String getProgramName(int index) override;
-
-  void changeProgramName(int index, const juce::String &newName) override;
-
-  void getStateInformation(juce::MemoryBlock &destData) override;
-
-  void setStateInformation(const void *data, int sizeInBytes) override;
-  double getTailLengthSeconds() const override;
-
- protected:
-  int inputChannelCount;
-  int outputChannelCount;
-
- private:
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PassthroughProcessor);
+private:
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PassthroughProcessor)
 };
+

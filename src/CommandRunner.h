@@ -5,65 +5,74 @@
 
 #include <cstdio>
 
-class CommandRunner
-{
+class CommandRunner {
 
- public:
-  CommandRunner () = default;
+public:
+    CommandRunner () = default;
 
-  ~ CommandRunner () = default;
+    ~ CommandRunner () = default;
 
-  void createPulseSink () {
-    this->handle = CommandRunner::run(
-      "pactl load-module module-jack-sink sink_properties=device.description=SystemwideIO client_name=SystemwideIO sink_name=SystemwideIO",
-      PULSE_AUDIO_SINK_ERROR
-    );
-  }
+    void createPulseSink () {
+        this->handle = CommandRunner::run(
+          "pactl load-module module-jack-sink sink_properties=device.description=SystemwideIO sink_name=SystemwideIO",
+          PULSE_AUDIO_SINK_ERROR
+        );
 
-  void removePulseSink () {
-    CommandRunner::run(
-      "pactl unload-module " + this->handle,
-      PULSE_AUDIO_SINK_ERROR
-    );
-
-    this->handle.clear();
-  }
-
-  void openPulseAudioVolumeControl () {
-    CommandRunner::run(
-      "pavucontrol &",
-      PULSE_AUDIO_CONTROL_ERROR
-    );
-  }
-
-  void openSponsorshipPage () {
-    CommandRunner::run(
-      "xdg-open https://github.com/sponsors/barthy-koeln &",
-      PULSE_AUDIO_CONTROL_ERROR
-    );
-  }
-
- private:
-  std::string handle{};
-
-  static std::string run (const std::string &input, const std::string &errorId) {
-    std::cout << "running command: [" << input << "]" << std::endl;
-
-    std::unique_ptr<FILE, decltype(&pclose)> commandPipe(popen(input.c_str(), "r"), pclose);
-    if (nullptr == commandPipe) {
-      throw std::runtime_error(errorId);
+        CommandRunner::run(
+          "pactl set-default-sink SystemwideIO",
+          PULSE_AUDIO_SINK_ERROR
+        );
     }
 
-    std::array<char, 128> buffer{};
-    std::string output;
+    void removePulseSink () {
+        if (this->handle.empty()) {
+            std::cout << "no pactl handle." << std::endl;
+            return;
+        }
 
-    while (fgets(buffer.data(), buffer.size(), commandPipe.get()) != nullptr) {
-      output += buffer.data();
+        CommandRunner::run(
+          "pactl unload-module " + this->handle,
+          PULSE_AUDIO_SINK_ERROR
+        );
+
+        this->handle.clear();
     }
 
-    output.erase(std::remove(output.begin(), output.end(), '\n'), output.end());
+    void openPulseAudioVolumeControl () {
+        CommandRunner::run(
+          "nohup pavucontrol &",
+          PULSE_AUDIO_CONTROL_ERROR
+        );
+    }
 
-    return output;
-  }
+    void openSponsorshipPage () {
+        CommandRunner::run(
+          "xdg-open https://github.com/sponsors/barthy-koeln &",
+          PULSE_AUDIO_CONTROL_ERROR
+        );
+    }
+
+private:
+    std::string handle{};
+
+    static std::string run (const std::string &input, const std::string &errorId) {
+        std::cout << "running command: [" << input << "]" << std::endl;
+
+        std::unique_ptr<FILE, decltype(&pclose)> commandPipe(popen(input.c_str(), "r"), pclose);
+        if (nullptr == commandPipe) {
+            throw std::runtime_error(errorId);
+        }
+
+        std::array<char, 128> buffer{};
+        std::string output;
+
+        while (fgets(buffer.data(), buffer.size(), commandPipe.get()) != nullptr) {
+            output += buffer.data();
+        }
+
+        output.erase(std::remove(output.begin(), output.end(), '\n'), output.end());
+
+        return output;
+    }
 
 };

@@ -1,40 +1,44 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "LookAndFeel.h"
+#include "CustomLookAndFeel.h"
 #include "PluginSelectionTableModel.h"
 #include "PassthroughProcessor.h"
 #include "PluginWindow.h"
-#include "SystemwideVSTProcess.h"
+#include "SystemwideIOProcess.h"
 
 class ConfigurationComponent :
-    public juce::Component,
-    public juce::ChangeListener,
-    public juce::ActionListener,
-    public juce::ActionBroadcaster {
+  public juce::Component,
+  public juce::ChangeListener,
+  public juce::ActionListener,
+  public juce::ActionBroadcaster {
 
- public:
-  explicit ConfigurationComponent(SystemwideVSTProcess &systemwideVSTProcess);
-  ~ConfigurationComponent() override;
+public:
+    explicit ConfigurationComponent (SystemwideVSTProcess &systemwideVSTProcess);
 
-  void paint(juce::Graphics &g) override;
-  void resized() override;
+    ~ConfigurationComponent () override;
 
-  void changeListenerCallback(juce::ChangeBroadcaster *) override;
-  void actionListenerCallback(const juce::String &message) override;
+    void paint (juce::Graphics &g) override;
 
- private:
-  SystemwideVSTProcess &systemwideVSTProcess;
+    void resized () override;
 
-  std::unique_ptr<LookAndFeel> appLookAndFeel;
-  std::unique_ptr<juce::KnownPluginList> knownPluginList;
-  std::unique_ptr<juce::PluginListComponent> pluginListComponent;
-  std::unique_ptr<juce::AudioDeviceSelectorComponent> audioDeviceSelector;
-  juce::HyperlinkButton sponsorButton;
-  juce::Label versionLabel;
+    void changeListenerCallback (juce::ChangeBroadcaster *) override;
 
-  PluginSelectionTableModel *getPluginSelectionModel();
+    void actionListenerCallback (const juce::String &message) override;
 
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ConfigurationComponent)
-  void savePluginList();
+private:
+    SystemwideVSTProcess &systemwideVSTProcess;
+
+    std::unique_ptr<CustomLookAndFeel> appLookAndFeel;
+    std::unique_ptr<juce::KnownPluginList> knownPluginList;
+    std::unique_ptr<juce::PluginListComponent> pluginListComponent;
+    std::unique_ptr<juce::AudioDeviceSelectorComponent> audioDeviceSelector;
+    juce::HyperlinkButton sponsorButton;
+    juce::Label versionLabel;
+
+    PluginSelectionTableModel *getPluginSelectionModel ();
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ConfigurationComponent)
+
+    void savePluginList ();
 };
