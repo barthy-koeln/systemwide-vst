@@ -38,13 +38,6 @@ public:
         this->handle.clear();
     }
 
-    void openPulseAudioVolumeControl () {
-        CommandRunner::run(
-          "nohup pavucontrol &",
-          PULSE_AUDIO_CONTROL_ERROR
-        );
-    }
-
     void openSponsorshipPage () {
         CommandRunner::run(
           "xdg-open https://github.com/sponsors/barthy-koeln &",
@@ -75,4 +68,5 @@ private:
         return output;
     }
 
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CommandRunner)
 };

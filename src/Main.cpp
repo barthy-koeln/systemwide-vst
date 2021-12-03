@@ -35,7 +35,7 @@ public:
         }
 
         this->trayIconThread = std::make_unique<TrayIconThread>();
-        this->trayIconThread->startThread();
+        this->trayIconThread->startThread(0);
         this->trayIconThread->addActionListener(this->systemwideVSTProcess.get());
 
         this->systemwideVSTProcess->addActionListener(this);
@@ -71,11 +71,6 @@ public:
 
         if (message == MESSAGE_QUIT) {
             JUCEApplicationBase::quit();
-            return;
-        }
-
-        if (message == MESSAGE_SHOW_PAVUCONTROL) {
-            this->commandRunner->openPulseAudioVolumeControl();
             return;
         }
     }

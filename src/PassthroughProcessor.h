@@ -18,8 +18,13 @@ public:
 
     void releaseResources () override {}
 
-    void processBlock (juce::AudioSampleBuffer &, juce::MidiBuffer &) override {}
+    void processBlock (juce::AudioBuffer<float> &buffer, juce::MidiBuffer &midiMessages) override {
+        ignoreUnused(buffer, midiMessages);
+    }
 
+    void processBlock (juce::AudioBuffer<double> &buffer, juce::MidiBuffer &midiMessages) override {
+        ignoreUnused(buffer, midiMessages);
+    }
 
     juce::AudioProcessorEditor *createEditor () override { return nullptr; }
 

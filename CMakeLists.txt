@@ -17,6 +17,7 @@ add_definitions(
         -DDONT_SET_USING_JUCE_NAMESPACE=1
         -DJUCE_ALSA=0
         -DJUCE_JACK=1
+        -DJUCE_PLUGINHOST_VST=1
         -DJUCE_PLUGINHOST_VST3=1
         -DJUCE_PLUGINHOST_LADSPA=1
         -DJUCE_CHECK_MEMORY_LEAKS=1
@@ -35,7 +36,7 @@ juce_add_gui_app(SystemwideIO
         ICON_BIG ./assets/images/logo.svg   # ICON_* arguments specify a path to an image file to use as an icon
         ICON_SMALL ./assets/images/logo.svg
         COMPANY_NAME barthy.koeln           # Specify the name of the app's author
-        PRODUCT_NAME "Systemwide IO")     # The name of the final executable, which can differ from the target name
+        PRODUCT_NAME "SystemwideIO")     # The name of the final executable, which can differ from the target name
 
 set_target_properties(SystemwideIO PROPERTIES
         OUTPUT_NAME "SystemwideIO"
@@ -44,6 +45,8 @@ set_target_properties(SystemwideIO PROPERTIES
         )
 
 juce_generate_juce_header(SystemwideIO)
+
+juce_set_vst2_sdk_path(/home/barthy/vstsdk2.4)
 
 target_sources(SystemwideIO
         PRIVATE

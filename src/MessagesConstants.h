@@ -5,4 +5,3 @@
 #define MESSAGE_SHOW_CONFIG "show_config"
 #define MESSAGE_CLOSE_CONFIG "close_config"
 #define MESSAGE_QUIT "quit"
-#define MESSAGE_SHOW_PAVUCONTROL "pavucontrol"

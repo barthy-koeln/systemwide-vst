@@ -17,35 +17,37 @@ public:
         this->propertiesOptions->applicationName = ProjectInfo::projectName;
         this->propertiesOptions->folderName = ProjectInfo::companyName;
         this->propertiesOptions->osxLibrarySubFolder = "Application Support";
+        this->propertiesOptions->filenameSuffix = "xml";
 
         this->applicationProperties = std::make_unique<juce::ApplicationProperties>();
         this->applicationProperties->setStorageParameters(*this->propertiesOptions);
 
-        std::unique_ptr<juce::XmlElement>
-          savedDeviceManager = this->applicationProperties->getUserSettings()->getXmlValue(SETTING_DEVICE_MANAGER);
+        auto savedDeviceManager = this->applicationProperties->getUserSettings()->getXmlValue(SETTING_DEVICE_MANAGER);
+
+        this->audioDeviceSetup = juce::AudioDeviceManager::AudioDeviceSetup(
+          {
+            .outputDeviceName = "system",
+            .inputDeviceName = "PulseAudio JACK Sink",
+            .sampleRate = 0,
+            .bufferSize = 0,
+            .inputChannels = 0,
+            .useDefaultInputChannels = true,
+            .outputChannels = 0,
+            .useDefaultOutputChannels = true
+          }
+        );
 
         SystemwideVSTProcess::doWithPermission(
           juce::RuntimePermissions::recordAudio,
           [&] (bool /*granted*/) {
-
               this->deviceManager->initialise(
                 2,
                 2,
-                nullptr,
+                savedDeviceManager.get(),
                 true,
                 "",
-                new juce::AudioDeviceManager::AudioDeviceSetup(
-                  {
-                    .outputDeviceName = "",
-                    .inputDeviceName = "Playback/recording through the PulseAudio sound server",
-                    .sampleRate = 0,
-                    .bufferSize = 0,
-                    .inputChannels = 0,
-                    .useDefaultInputChannels = true,
-                    .outputChannels = 0,
-                    .useDefaultOutputChannels = true
-                  }
-                ));
+                &this->audioDeviceSetup
+              );
           }
         );
 
@@ -68,29 +70,34 @@ public:
         this->deviceManager->closeAudioDevice();
         this->deviceManager->removeChangeListener(this);
         this->deviceManager->removeAudioCallback(this->audioProcessorPlayer.get());
+
+        this->applicationProperties->saveIfNeeded();
+        this->applicationProperties->closeFiles();
+
+        this->audioProcessorPlayer->setProcessor(nullptr);
+        this->deletePluginWindow();
     }
 
     void loadSavedPlugin () {
-        std::unique_ptr<juce::XmlElement>
-          savedProcessor = this->applicationProperties->getUserSettings()->getXmlValue(SETTING_PROCESSOR);
+        auto savedProcessor = this->applicationProperties->getUserSettings()->getXmlValue(SETTING_PROCESSOR);
 
-        if (savedProcessor) {
-            auto plugin = std::make_unique<juce::PluginDescription>();
-            plugin->loadFromXml(*savedProcessor);
-            this->loadPlugin(*plugin);
-
-            if (!this->loadedPlugin) {
-                return;
-            }
-
-            juce::MemoryBlock state;
-            state.fromBase64Encoding(this->applicationProperties->getUserSettings()->getValue(SETTING_PROCESSOR_STATE));
-            this->loadedPlugin->setStateInformation(state.getData(), state.getSize());
-            this->audioProcessorPlayer->setProcessor(this->loadedPlugin.get());
+        if (!savedProcessor) {
+            this->audioProcessorPlayer->setProcessor(this->passThrough.get());
             return;
         }
 
-        this->audioProcessorPlayer->setProcessor(this->passThrough.get());
+        auto plugin = std::make_unique<juce::PluginDescription>();
+        plugin->loadFromXml(*savedProcessor);
+        this->loadPlugin(*plugin);
+
+        if (!this->loadedPlugin) {
+            return;
+        }
+
+        juce::MemoryBlock state;
+        state.fromBase64Encoding(this->applicationProperties->getUserSettings()->getValue(SETTING_PROCESSOR_STATE));
+        this->loadedPlugin->setStateInformation(state.getData(), state.getSize());
+        this->audioProcessorPlayer->setProcessor(this->loadedPlugin.get());
     }
 
     [[nodiscard]] bool shouldShowConfig () const {
@@ -227,6 +234,8 @@ private:
     std::unique_ptr<juce::AudioProcessorPlayer> audioProcessorPlayer;
     std::unique_ptr<PluginWindow> pluginWindow;
 
+    juce::AudioDeviceManager::AudioDeviceSetup audioDeviceSetup;
+
     void createOrShowPluginWindow () {
         if (!this->loadedPlugin) {
             this->sendActionMessage(MESSAGE_SHOW_CONFIG);
@@ -240,6 +249,7 @@ private:
         }
 
         this->pluginWindow = std::make_unique<PluginWindow>(*this->loadedPlugin, this);
+        this->createOrShowPluginWindow();
     }
 
     void deletePluginWindow () {

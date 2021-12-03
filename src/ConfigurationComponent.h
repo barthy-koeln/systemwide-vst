@@ -38,7 +38,7 @@ private:
 
     PluginSelectionTableModel *getPluginSelectionModel ();
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ConfigurationComponent)
-
     void savePluginList ();
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ConfigurationComponent)
 };

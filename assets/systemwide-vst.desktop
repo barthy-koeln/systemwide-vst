@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Encoding=UTF-8
-Name=Systemwide VST
+Name=SystemwideIO
 Comment=Routes audio from applications through a VST of your choice.
 Exec=SystemwideVST
 Icon=images/logo.png

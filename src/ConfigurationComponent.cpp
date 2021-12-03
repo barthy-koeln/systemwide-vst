@@ -21,7 +21,7 @@ ConfigurationComponent::ConfigurationComponent (SystemwideVSTProcess &systemwide
       false,
       false,
       true,
-      false
+      true
     );
 
     this->knownPluginList = std::make_unique<juce::KnownPluginList>();
@@ -60,7 +60,7 @@ ConfigurationComponent::ConfigurationComponent (SystemwideVSTProcess &systemwide
     this->sponsorButton.setURL(url);
 
     this->versionLabel.setText(
-      juce::String("SystemwideVST version ") + ProjectInfo::versionString,
+      ProjectInfo::projectName + juce::String(" v") + ProjectInfo::versionString,
       juce::NotificationType::dontSendNotification
     );
 
