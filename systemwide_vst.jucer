@@ -13,31 +13,29 @@
       </GROUP>
     </GROUP>
     <GROUP id="{754518D7-B3F6-4F3D-FBFB-8353298CC519}" name="src">
-      <FILE id="mmGwhP" name="TrayIconThread.h" compile="0" resource="0"
-            file="src/TrayIconThread.h"/>
-      <FILE id="BRdZBN" name="MessagesConstants.h" compile="0" resource="0"
-            file="src/MessagesConstants.h"/>
-      <FILE id="eZO9Cd" name="SettingsConstants.h" compile="0" resource="0"
-            file="src/SettingsConstants.h"/>
-      <FILE id="wMN7V2" name="SystemwideVSTProcess.h" compile="0" resource="0"
-            file="src/SystemwideVSTProcess.h"/>
-      <FILE id="ldYVV3" name="PassthroughProcessor.cpp" compile="1" resource="0"
-            file="src/PassthroughProcessor.cpp"/>
-      <FILE id="aEnynl" name="PassthroughProcessor.h" compile="0" resource="0"
-            file="src/PassthroughProcessor.h"/>
-      <FILE id="m7ABB1" name="ConfigurationWindow.h" compile="0" resource="0"
+      <FILE id="q0gpVZ" name="CommandRunner.h" compile="0" resource="0" file="src/CommandRunner.h"/>
+      <FILE id="K3fRyC" name="ConfigurationComponent.cpp" compile="1" resource="0"
+            file="src/ConfigurationComponent.cpp"/>
+      <FILE id="Zo8o0z" name="ConfigurationComponent.h" compile="0" resource="0"
+            file="src/ConfigurationComponent.h"/>
+      <FILE id="pGGPpr" name="ConfigurationWindow.h" compile="0" resource="0"
             file="src/ConfigurationWindow.h"/>
-      <FILE id="xnTRg6" name="PluginWindow.h" compile="0" resource="0" file="src/PluginWindow.h"/>
-      <FILE id="gzWpeX" name="PluginSelectionTableModel.h" compile="0" resource="0"
+      <FILE id="msksac" name="CustomLookAndFeel.h" compile="0" resource="0"
+            file="src/CustomLookAndFeel.h"/>
+      <FILE id="usf1Kg" name="Main.cpp" compile="1" resource="0" file="src/Main.cpp"/>
+      <FILE id="MGcJHt" name="MessagesConstants.h" compile="0" resource="0"
+            file="src/MessagesConstants.h"/>
+      <FILE id="tzvThD" name="PassthroughProcessor.h" compile="0" resource="0"
+            file="src/PassthroughProcessor.h"/>
+      <FILE id="BO5Hp4" name="PluginSelectionTableModel.h" compile="0" resource="0"
             file="src/PluginSelectionTableModel.h"/>
-      <FILE id="ytEOOU" name="LookAndFeel.h" compile="0" resource="0" file="src/LookAndFeel.h"
-            xcodeResource="1"/>
-      <FILE id="j3nLnI" name="Main.cpp" compile="1" resource="0" file="src/Main.cpp"
-            xcodeResource="1"/>
-      <FILE id="P5DJJx" name="ConfigurationComponent.h" compile="0" resource="0"
-            file="src/ConfigurationComponent.h" xcodeResource="1"/>
-      <FILE id="p2f61H" name="ConfigurationComponent.cpp" compile="1" resource="0"
-            file="src/ConfigurationComponent.cpp" xcodeResource="1"/>
+      <FILE id="PpSvw7" name="PluginWindow.h" compile="0" resource="0" file="src/PluginWindow.h"/>
+      <FILE id="kyl5v2" name="SettingsConstants.h" compile="0" resource="0"
+            file="src/SettingsConstants.h"/>
+      <FILE id="ZKVp0M" name="SystemwideIOProcess.h" compile="0" resource="0"
+            file="src/SystemwideIOProcess.h"/>
+      <FILE id="lZIQDT" name="TrayIconThread.h" compile="0" resource="0"
+            file="src/TrayIconThread.h"/>
     </GROUP>
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_PLUGINHOST_VST="0" JUCE_PLUGINHOST_VST3="1"
@@ -77,22 +75,6 @@
         <MODULEPATH id="juce_audio_basics" path="../../juce"/>
       </MODULEPATHS>
     </LINUX_MAKE>
-    <CLION targetFolder="Builds/CLion" clionMakefileEnabled="1">
-      <MODULEPATHS>
-        <MODULEPATH id="juce_gui_extra" path="../../juce"/>
-        <MODULEPATH id="juce_gui_basics" path="../../juce"/>
-        <MODULEPATH id="juce_graphics" path="../../juce"/>
-        <MODULEPATH id="juce_events" path="../../juce"/>
-        <MODULEPATH id="juce_dsp" path="../../juce"/>
-        <MODULEPATH id="juce_data_structures" path="../../juce"/>
-        <MODULEPATH id="juce_core" path="../../juce"/>
-        <MODULEPATH id="juce_audio_utils" path="../../juce"/>
-        <MODULEPATH id="juce_audio_processors" path="../../juce"/>
-        <MODULEPATH id="juce_audio_formats" path="../../juce"/>
-        <MODULEPATH id="juce_audio_devices" path="../../juce"/>
-        <MODULEPATH id="juce_audio_basics" path="../../juce"/>
-      </MODULEPATHS>
-    </CLION>
   </EXPORTFORMATS>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="0" useLocalCopy="0" useGlobalPath="1"/>
